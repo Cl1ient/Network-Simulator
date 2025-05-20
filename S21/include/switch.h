@@ -1,10 +1,11 @@
 #include "adresse.h"
-#include
+#include "graphe.h"
+
 
 
 // entrée dans la table de commutation
 typedef struct {
-    Mac adresse;    // Adresse MAC connue
+    AdresseMac adresse;    // Adresse MAC connue
     int port;       // Port associé à l'adresse
 } EntreeTable;
 
@@ -16,11 +17,11 @@ typedef struct {
 
 // represente un switch d'un réseau
 typedef struct {
-    Mac adresseMac;     // adr mac unique du switch
+    AdresseMac adresseMac;     // adr mac unique du switch
     int nbPort;     // nb tot de ports du switch
     int priorite;       // priorite pour le stp
     TableCommutation tblCommu;      // tbl commu
-    Sommet* sommet;     // ref vers le sommet du graphe associé a ce switch
+    sommet* sommet;     // ref vers le sommet du graphe associé a ce switch
 } Switch
 
 // créer un switch

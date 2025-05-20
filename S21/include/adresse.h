@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 
 // Structure d'adresse MAC : 6 octets
@@ -10,3 +9,6 @@ typedef struct {
 typedef struct {
     unsigned char octets[4];
 } AdresseIP;
+
+
+char * mac_to_string(AdresseMac M, char * str_mac);
