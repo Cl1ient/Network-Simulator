@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "adresse.h"
 #include "graphe.h"
 
@@ -10,8 +11,8 @@ typedef struct entreeTable{
 
 // table de commu complète, utilisé dans chaque switch
 typedef struct tableCommutation{
-    entreeTable entrees[TAILLE_TABLE_COMMUTATION];  // Liste des entrées (table statique)
-    int taille;  // Nombre actuel d’entrées valides dans la table
+    entreeTable entrees[];  // Liste des entrées
+    int taille;  // Nombre d’entrées valides dans la table
 } tableCommutation;
 
 // represente un switch d'un réseau
