@@ -10,3 +10,5 @@ typedef struct {
 typedef struct {
     unsigned char octets[4];
 } AdresseIP;
+
+void afficherIp(AdresseIp ip);
