@@ -12,3 +12,4 @@ typedef struct {
 } AdresseIP;
 
 void afficherIp(AdresseIp ip);
+char* ip_to_string(AdresseIP ip, char* str_ip);

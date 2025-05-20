@@ -8,4 +8,8 @@ char* ip_to_string(AdresseIP ip, char* str_ip) {
 }
 
 
-
+void afficherIp(AdresseIP ip) {
+    char str_ip[16];
+    ip_to_string(ip, str_ip);
+    printf("Adresse IP : %s\n", str_ip);
+}
