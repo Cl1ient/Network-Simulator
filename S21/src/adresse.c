@@ -9,6 +9,12 @@ char * mac_to_string(AdresseMac M, char * str_mac){
     return str_mac; // return du pointeur pour utilisation direct
 }
 
+void afficherMac(AdresseMac mac){
+    char taille[18]; // taille min du mac sous forme string
+    printf("MAC = %s\n", mac_to_string(mac, taille));
+}
+
+
 // afficher une adresse ip : 
 char* ip_to_string(AdresseIP ip, char* str_ip) {
     sprintf(str_ip, "%d.%d.%d.%d", ip.octet[0],ip.octet[1], ip.octet[2]);
