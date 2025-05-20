@@ -4,7 +4,7 @@
 // Structure d'adresse MAC : 6 octets
 typedef struct {
     unsigned char octets[6];
-} AdresseMAC;
+} AdresseMac;
 
 // Structure d'adresse IP : 4 octets
 typedef struct {
