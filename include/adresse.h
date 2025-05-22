@@ -13,8 +13,10 @@ typedef struct {
 } AdresseIP;
 
 char * mac_to_string(AdresseMac M, char * str_mac);
-
-void afficherIp(AdresseIP ip);
 void afficherMac(AdresseMac m);
+
+
 char* ip_to_string(AdresseIP ip, char* str_ip);
+void afficherIp(AdresseIP ip);
+
 #endif //ADRESSE_H
