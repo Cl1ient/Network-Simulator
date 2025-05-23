@@ -14,4 +14,16 @@ typedef struct reseau{
     size_t nbEquipements; // nombre de station/switch
     size_t nbLiens; // nombre d'arrete
 } reseau;
+
+
+void init_reseau(reseau *r);
+
+void ajouter_station(reseau *r, station s);
+
+void ajouter_switch(reseau *r, Switch sw);
+
+void ajouter_lien(reseau *r, sommet s1, sommet s2);
+
+
+
 #endif //RESEAU_H

@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "include/adresse.h"
+#include "include/config.h"
 
 int main() {
     AdresseIP ip_test = {{192, 168, 0, 42}};
@@ -8,6 +9,8 @@ int main() {
 
     afficherIp(ip_test);
     afficherMac(mac_test);
+
+    lireFichierConfiguration("mylan_no_cycle.lan");
 
     return 0;
 }

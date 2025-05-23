@@ -1,11 +1,9 @@
 //
 // Created by alexis on 5/22/25.
 //
-
-#ifndef ADRESSE_C_H
-#define ADRESSE_C_H
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../include/adresse.h"
 
@@ -23,7 +21,7 @@ void afficherMac(AdresseMac mac){
 
 // afficher une adresse ip :
 char* ip_to_string(AdresseIP ip, char* str_ip) {
-    sprintf(str_ip, "%d.%d.%d.%d", ip.octets[0],ip.octets[1], ip.octets[2]);
+    sprintf(str_ip, "%d.%d.%d.%d", ip.octets[0], ip.octets[1], ip.octets[2], ip.octets[3]);
     return str_ip;
 }
 
@@ -33,4 +31,4 @@ void afficherIp(AdresseIP ip) {
     ip_to_string(ip, str_ip);
     printf("Adresse IP : %s\n", str_ip);
 }
-#endif //ADRESSE_C_H
+

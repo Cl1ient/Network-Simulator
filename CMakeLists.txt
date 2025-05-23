@@ -7,5 +7,7 @@ add_executable(sae_s21
         main.c
         src/adresse.c
         src/adresse.c
+        src/reseau.c
+        src/config.c
 )
 

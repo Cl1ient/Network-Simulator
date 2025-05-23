@@ -18,5 +18,8 @@ typedef struct station {
 
 } station;
 
-void creationStation();
+void creationStation(AdresseMac mac, AdresseIP ip, sommet s);
+void afficherStation(station s);
+
+
 #endif //STATION_H
