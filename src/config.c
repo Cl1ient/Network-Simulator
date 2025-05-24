@@ -1,122 +1,55 @@
+#include "../include/config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../include/config.h"
 
-void lireLigneEquipement(char *ligne, int numero) {
-    int i = 0, j = 0, champ = 0;
-    char typeChar[10], champ1[50], champ2[50], champ3[50];
 
-    // Initialiser toutes les chaînes
-    typeChar[0] = champ1[0] = champ2[0] = champ3[0] = '\0';
+#define MAX_SIZE 1024
 
-    while (ligne[i] != '\0' && ligne[i] != '\n') {
-        if (ligne[i] == ';') {
-            champ++;
-            j = 0;
-        } else {
-            if (champ == 0) {
-                typeChar[j] = ligne[i];
-                typeChar[j + 1] = '\0';
-            } else if (champ == 1) {
-                champ1[j] = ligne[i];
-                champ1[j + 1] = '\0';
-            } else if (champ == 2) {
-                champ2[j] = ligne[i];
-                champ2[j + 1] = '\0';
-            } else if (champ == 3) {
-                champ3[j] = ligne[i];
-                champ3[j + 1] = '\0';
-            }
-            j++;
-        }
-        i++;
-    }
-
-    int type = typeChar[0] - '0';
-
-    if (type == 2) {
-        printf("Switch [%d]\n", numero);
-        printf("  MAC      : %s\n", champ1);
-        printf("  Ports    : %s\n", champ2);
-        printf("  Priorité : %s\n\n", champ3);
-    } else if (type == 1) {
-        printf("Station [%d]\n", numero);
-        printf("  MAC : %s\n", champ1);
-        printf("  IP  : %s\n\n", champ2);
-    } else {
-        printf("Équipement inconnu (type=%d)\n", type);
-    }
-}
-
-// Fonction pour afficher une ligne de lien
-void lireLigneLien(char *ligne, int numero) {
-    int i = 0;
-    char champ1[10], champ2[10], champ3[10];
-    int champ = 0;
-    int j = 0;
-
-    champ1[0] = champ2[0] = champ3[0] = '\0';
-
-    while (ligne[i] != '\0' && ligne[i] != '\n') {
-        if (ligne[i] == ';') {
-            champ++;
-            j = 0;
-        } else {
-            if (champ == 0) {
-                champ1[j] = ligne[i];
-                champ1[j + 1] = '\0';
-            } else if (champ == 1) {
-                champ2[j] = ligne[i];
-                champ2[j + 1] = '\0';
-            } else if (champ == 2) {
-                champ3[j] = ligne[i];
-                champ3[j + 1] = '\0';
-            }
-            j++;
-        }
-        i++;
-    }
-
-    printf("Lien %d : %s <-> %s (poids : %s)\n", numero, champ1, champ2, champ3);
-}
-
-void lireFichierConfiguration(const char *nomFichier) {
+void lireFichierConfiguration(const char *nomFichier, reseau *reseau) {
     FILE *fichier = fopen(nomFichier, "r");
-
-    if (fichier == NULL) {
-        printf("Erreur : impossible d'ouvrir le fichier %s\n", nomFichier);
+    if (!fichier) {
+        printf("Impossible d'ouvrir le fichier %s\n", nomFichier);
         return;
     }
 
-    char ligne[100];
-    int nbEquipements = 0, nbLiens = 0;
+    char ligne[MAX_SIZE];
 
-    // Lire la première ligne (en-tête)
-    fgets(ligne, sizeof(ligne), fichier);
-    sscanf(ligne, "%d %d", &nbEquipements, &nbLiens);
+    size_t nb_equipements, nb_liens;
 
-    printf("Nombre d'équipements : %d\n", nbEquipements);
-    printf("Nombre de liens : %d\n\n", nbLiens);
+    //Lecture de la premiere ligne (nombre équipements + liens)
+    fgets(ligne, MAX_SIZE, fichier);
+    sscanf(ligne, "%zu %zu", &nb_equipements, &nb_liens);
+    printf("Nombre d'équipements : %zu, Nombre de liens : %zu\n", nb_equipements, nb_liens);
 
-    // Lire les équipements
-    printf("=== ÉQUIPEMENTS ===\n");
-    int i = 0;
-    while (i < nbEquipements) {
-        if (fgets(ligne, sizeof(ligne), fichier) != NULL) {
-            lireLigneEquipement(ligne, i);
+    //Lecture des équipements (switchs et stations)
+    size_t i = 0;
+    while (i < nb_equipements && fgets(ligne, MAX_SIZE, fichier)) {
+        int type;
+        char mac_str[18], ip_str[16] = "";
+        size_t nb_ports = 0, priorite = 0;
+
+        if (sscanf(ligne, "%d ; %17s ; %zu ; %zu", &type, mac_str, &nb_ports, &priorite) == 4) {
+            Switch sw = creer_switch(mac_str, nb_ports, priorite);
+            ajouter_switch(reseau, sw);
+            afficher_switch(&sw);
+        } else if (sscanf(ligne, "%d ; %17s ; %15s", &type, mac_str, ip_str) == 3) {
+            station st = creer_station(mac_str, ip_str);
+            ajouter_station(reseau, st);
+            afficher_station(&st);
         }
-        i = i + 1;
+        printf("\n");
+        i++;
     }
 
-    // Lire les liens
-    printf("=== LIENS ===\n");
-    i = 0;
-    while (i < nbLiens) {
-        if (fgets(ligne, sizeof(ligne), fichier) != NULL) {
-            lireLigneLien(ligne, i);
-        }
-        i = i + 1;
+    //Lecture des liens
+    size_t j = 0;
+    while (j < nb_liens && fgets(ligne, MAX_SIZE, fichier)) {
+        size_t id1, id2, poids;
+        sscanf(ligne, "%zu ; %zu ; %zu", &id1, &id2, &poids);
+        connecter_equipement(reseau, id1, id2, poids);
+        printf("Connexion ajoutée : %zu ↔ %zu (Poids=%zu)\n", id1, id2, poids);
+        j++;
     }
 
     fclose(fichier);

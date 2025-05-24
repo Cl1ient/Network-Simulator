@@ -18,39 +18,21 @@ reseau creer_reseau() {
 }
 
 // ajt d'une station dans le rres
-bool ajouter_station(reseau *reseau, char* mac_str, char* ip_str) {
-    if (!reseau) {
-        return false;
-    }
-
-    station *nouvelle_liste = realloc(reseau->stations, (reseau->nb_stations + 1) * sizeof(station));
-    if (!nouvelle_liste) {
-        return false;
-    }
-
-    reseau->stations = nouvelle_liste;
-    reseau->stations[reseau->nb_stations] = creer_station(mac_str, ip_str);
+bool ajouter_station(reseau *reseau, station nv) {
+    reseau->stations = realloc(reseau->stations, (reseau->nb_stations + 1) * sizeof(station));
+    reseau->stations[reseau->nb_stations] = nv;
     reseau->nb_stations++;
-
     return true;
+
 }
 
 // ajt switch
-bool ajouter_switch(reseau *reseau, char* mac_str, size_t nb_ports, int priorite) {
-    if (!reseau) {
-        return false;
-    }
-
-    Switch *nouvelle_liste = realloc(reseau->switchs, (reseau->nb_switch + 1) * sizeof(Switch));
-    if (!nouvelle_liste) {
-        return false;
-    }
-
-    reseau->switchs = nouvelle_liste;
-    reseau->switchs[reseau->nb_switch] = creer_switch(mac_str, nb_ports, priorite);
+bool ajouter_switch(reseau *reseau, Switch nv) {
+    reseau->switchs = realloc(reseau->switchs, (reseau->nb_switch + 1) * sizeof(Switch));
+    reseau->switchs[reseau->nb_switch] = nv;
     reseau->nb_switch++;
-
     return true;
+
 }
 
 // Connexion de deux équipements (ajt d’une arete dans le graphe)

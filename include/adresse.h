@@ -6,12 +6,12 @@
 
 // Structure d'adresse MAC : 6 octets
 typedef struct AdresseMac{
-    uint8_t octets[6];
+    unsigned char octets[6];
 } AdresseMac;
 
 // Structure d'adresse IP : 4 octets
 typedef struct AdresseIP{
-    uint8_t octets[4];
+    unsigned char octets[4];
 } AdresseIP;
 
 char * mac_to_string(AdresseMac mac, char * str_mac);

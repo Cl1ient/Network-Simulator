@@ -21,7 +21,7 @@ typedef struct reseau{
 } reseau;
 
 reseau creer_reseau();  // creation d'un reseau vide
-bool ajouter_station(reseau *reseau, char* mac_str, char* ip_str);
-bool ajouter_switch(reseau *reseau, char* mac_str, size_t nb_ports, int priorite);
+bool ajouter_station(reseau *reseau, station nv);
+bool ajouter_switch(reseau *reseau, Switch nv);
 bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids);   // connecter deux equipement (ajouter un arete)
 void afficher_reseau(reseau *reseau);

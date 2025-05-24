@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "include/reseau.h"
+#include "include/config.h"
 #include "include/switch.h"
 #include "include/station.h"
 #include "include/adresse.h"
@@ -7,7 +8,7 @@
 #include "include/graphe.h"
 
 int main() {
-    AdresseMac mac;
+    /*AdresseMac mac;
     AdresseIP ip;
 
     string_to_mac("01:23:45:67:89:AB", &mac);
@@ -50,6 +51,25 @@ int main() {
     printf("Réseau complet :\n");
     afficher_reseau(&reseau);
     printf("\n");
+
+    // Libérer la mémoire des stations
+    for (size_t i = 0; i < reseau.nb_stations; i++) {
+        free(reseau.stations[i].mac.octets);
+    }
+    free(reseau.stations);
+
+    // Libérer la mémoire des switches
+    for (size_t i = 0; i < reseau.nb_switch; i++) {
+        free(reseau.switchs[i].adresseMac.octets);
+    }
+    free(reseau.switchs);
+
+    // Libérer la structure du graphe
+    deinit_graphe(&reseau.graphe);*/
+
+    reseau reseau = creer_reseau();
+    lireFichierConfiguration("mylan_no_cycle.lan", &reseau);
+
 
     return 0;
 }
