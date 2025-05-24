@@ -2,24 +2,16 @@
 // Created by alexis on 5/22/25.
 //
 
-#ifndef STATION_H
-#define STATION_H
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "graphe.h"
+#pragma once
+
 #include "adresse.h"
 
 
 typedef struct station {
     AdresseMac mac;
     AdresseIP ip;
-    sommet sommet;
-
 } station;
 
-void creationStation(AdresseMac mac, AdresseIP ip, sommet s);
-void afficherStation(station s);
+station creer_station(char* mac_str, char* ip_str);
+void afficher_station(station* s);
 
-
-#endif //STATION_H

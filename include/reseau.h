@@ -1,29 +1,27 @@
 //
 // Created by alexis on 5/22/25.
-//
 
-#ifndef RESEAU_H
-#define RESEAU_H
+
+#pragma once
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "graphe.h"
+#include "switch.h"
+#include "station.h"
 
 typedef struct reseau{
-    graphe graphe; // struct graphe dans graphe.h
-    size_t nbEquipements; // nombre de station/switch
-    size_t nbLiens; // nombre d'arrete
+    graphe graphe; // structure du reseau sous forme de grapghe
+    station *stations;   // liste des stations du reseau
+    size_t nb_stations;
+    Switch *switchs;
+    size_t nb_switch;
 } reseau;
 
-
-void init_reseau(reseau *r);
-
-void ajouter_station(reseau *r, station s);
-
-void ajouter_switch(reseau *r, Switch sw);
-
-void ajouter_lien(reseau *r, sommet s1, sommet s2);
-
-
-
-#endif //RESEAU_H
+reseau creer_reseau();  // creation d'un reseau vide
+bool ajouter_station(reseau *reseau, char* mac_str, char* ip_str);
+bool ajouter_switch(reseau *reseau, char* mac_str, size_t nb_ports, int priorite);
+bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids);   // connecter deux equipement (ajouter un arete)
+void afficher_reseau(reseau *reseau);

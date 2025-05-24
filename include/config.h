@@ -1,6 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
+
 
 void lireFichierConfiguration(const char *nomFichier);
 
-#endif

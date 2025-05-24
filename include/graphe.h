@@ -1,9 +1,3 @@
-//
-// Created by alexis on 5/22/25.
-//
-
-#ifndef GRAPHE_H
-#define GRAPHE_H
 #pragma once
 
 #include <stdlib.h>
@@ -15,14 +9,15 @@ typedef struct arete
 {
     sommet s1;
     sommet s2;
-
+    int poids;      // pour gerer le poid d'un lien dans le reseau
 } arete;
 
 typedef struct graphe
 {
-    size_t ordre;
-    *arete;
-
+    size_t ordre;   //nb de sommets
+    arete *aretes;  // tab d'arêtes
+    size_t aretes_capacite;     // capacité alloué (nb d'arêtes possible)
+    size_t nb_aretes;   // nb réel d'arêtes dans le graphe
 } graphe;
 
 static const size_t UNKNOWN_INDEX = -1;
@@ -40,5 +35,3 @@ bool ajouter_arete(graphe *g, arete a);
 size_t index_arete(graphe const *g, arete a);
 
 size_t sommets_adjacents(graphe const *g, sommet s, sommet sa[]);
-
-#endif //GRAPHE_H
