@@ -13,6 +13,9 @@ add_executable(sae_s21
         src/switch.c
         src/config.c
         src/utils.c
-        src/tram.c
+        src/trame.c
+        include/trame.h
+        src/stp.c
+        include/stp.h
 )
 

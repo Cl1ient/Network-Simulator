@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include "adresse.h"
 
-
 // represente un switch d'un réseau
 typedef struct Switch{
     AdresseMac adresseMac;     // adr mac unique du switch

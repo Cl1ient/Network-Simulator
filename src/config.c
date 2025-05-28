@@ -17,7 +17,7 @@ void lireFichierConfiguration(const char *nomFichier, reseau *reseau) {
 
     size_t nb_equipements, nb_liens;
 
-    //Lecture de la premiere ligne (nombre équipements + liens)
+    //Lecture de la premiere ligne (nb équipements + liens)
     fgets(ligne, MAX_SIZE, fichier);
     sscanf(ligne, "%zu %zu", &nb_equipements, &nb_liens);
     printf("Nombre d'équipements : %zu, Nombre de liens : %zu\n", nb_equipements, nb_liens);
