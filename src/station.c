@@ -1,34 +1,36 @@
+//
+// Created by acelya on 23/05/2025.
+//
+
 #include "../include/station.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void init_station(station *st, AdresseMac *mac, AdresseIP *ip) {
-    st->mac = *mac;
-    st->ip = *ip;
+#include "../include/adresse.h"
+
+// verifie que les adresses sont valide et creer la station
+station creer_station(char* mac_str, char* ip_str) {
+    station s;
+
+    int mac_ok = string_to_mac(mac_str, &s.mac);    // 1 si ok, 0 sinon
+
+    // convertir les chaines en adresses
+    if (!mac_ok) {      // si la conv echoue
+        printf("Errezur lors de la conversion, l'adresse mac est invalide\n");
+    }
+
+    int ip_ok = string_to_ip(ip_str, &s.ip);
+
+    if (!ip_ok) {
+        printf("Erreur lors de la convesion, l'adresse ip est invalide\n");
+    }
+
+    return s;
 }
 
-void afficher_station(station *st) {
-    printf("Station - MAC: ");
-    afficher_AdresseMac(&st->mac);
-    printf(", IP: ");
-    afficher_AdresseIP(&st->ip);
-    printf("\n");
-}
-
-void station_envoyer_trame(station *st, AdresseMac *dest, uint16_t type, uint8_t *data, size_t data_size, trame_ethernet *trame) {
-    init_trame_ethernet(trame, &st->mac, dest, type);
-    set_trame_data(trame, data, data_size);
-    
-    printf("Station ");
-    afficher_AdresseMac(&st->mac);
-    printf(" envoie une trame vers ");
-    afficher_AdresseMac(dest);
-    printf("\n");
-}
-
-void station_recevoir_trame(station *st, trame_ethernet *trame) {
-    printf("Station ");
-    afficher_AdresseMac(&st->mac);
-    printf(" reçoit une trame de ");
-    afficher_AdresseMac(&trame->source);
-    printf("\n");
+void afficher_station(station* station) {
+    printf("Station\n");
+    afficherMac(station->mac);
+    afficherIp(station->ip);
 }

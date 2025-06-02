@@ -6,13 +6,13 @@
 #include <float.h>
 #include <string.h>
 
-size_t degre(graphe *g, sommet s)
+size_t degre(graphe const *g, sommet s)
 {
     sommet sa[g->ordre];        // tableau pour stocker les sommets adjacents
     return sommets_adjacents(g,s,sa);       // recuperer le nombre d'adjacent
 }
 
-bool est_regulier(graphe *g)
+bool est_regulier(graphe const *g)
 {
     if(g->ordre == 0) {
         return true;
@@ -27,7 +27,7 @@ bool est_regulier(graphe *g)
     return true;
 }
 
-void afficher(graphe *g)
+void afficher(graphe const *g)
 {
     printf("# sommets = %zu\n", ordre(g));
     printf("# arêtes = %zu\n", nb_aretes(g));
@@ -67,7 +67,7 @@ void generer_complet(graphe *g, size_t ordre)
 
 }
 
-void visite_composante_connexe(graphe *g, sommet s, bool *visite)
+void visite_composante_connexe(graphe const *g, sommet s, bool *visite)
 {
     visite[s] = true;
 
@@ -82,7 +82,7 @@ void visite_composante_connexe(graphe *g, sommet s, bool *visite)
     }
 }
 
-uint32_t nb_composantes_connexes(graphe *g)
+uint32_t nb_composantes_connexes(graphe const *g)
 {
     size_t n = g->ordre;
     bool *visite = malloc(n * sizeof(bool));
@@ -103,7 +103,7 @@ uint32_t nb_composantes_connexes(graphe *g)
 
 }
 
-bool sont_connectes(graphe *g, sommet s1, sommet s2)
+bool sont_connectes(graphe const *g, sommet s1, sommet s2)
 {
     if (s1 == s2) {
         return true;
@@ -126,7 +126,7 @@ bool sont_connectes(graphe *g, sommet s1, sommet s2)
 
 }
 
-void coloriage_glouton(graphe *g, uint8_t *couleur_sommet)
+void coloriage_glouton(graphe const *g, uint8_t *couleur_sommet)
 {
     size_t n = ordre(g);        // nb de sommets
     for (size_t i = 0; i<n; i++) {
@@ -167,7 +167,7 @@ void coloriage_glouton(graphe *g, uint8_t *couleur_sommet)
 }
 
 
-void appliquer_permutation(graphe *src, graphe *dst, size_t *permutation)
+void appliquer_permutation(graphe const *src, graphe *dst, size_t const *permutation)
 {
     size_t n = ordre(src);
 
@@ -185,7 +185,7 @@ void appliquer_permutation(graphe *src, graphe *dst, size_t *permutation)
     }
 }
 
-uint32_t estimation_nb_chromatique(graphe *g, uint32_t n)
+uint32_t estimation_nb_chromatique(graphe const *g, uint32_t n)
 {
     return 0;
 }
@@ -194,14 +194,14 @@ void generer_aleatoire(graphe *g, size_t ordre, uint32_t k)
 {
 }
 
-void dijkstra(graphe *g, sommet s, double *poids_arete, double *distance_sommet)
+void dijkstra(graphe const *g, sommet s, double const *poids_arete, double *distance_sommet)
 {
 }
 
-void trier_aretes(arete *aretes_triees, graphe *g, double *poids_arete)
+void trier_aretes(arete *aretes_triees, graphe const *g, double const *poids_arete)
 {
 }
 
-void kruskal(graphe *g, double *poids_arete, graphe *acm)
+void kruskal(graphe const *g, double const *poids_arete, graphe *acm)
 {
 }
