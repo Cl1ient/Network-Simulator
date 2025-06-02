@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include "include/reseau.h"
 #include "include/config.h"
-#include "include/switch.h"
-#include "include/station.h"
 #include "include/adresse.h"
-#include "include/algos.h"
-#include "include/graphe.h"
 #include "include/tram.h"
 
 int main() {
@@ -89,7 +85,7 @@ int main() {
     size_t data_length = calculerDataLength(trame.data, 1500);
     afficherTrameUser(&trame, data_length);
     afficherTrameHexa(&trame, data_length);
-
-
+    uint8_t message[1500] = "Hello via tous les switches !";
+    envoyer_trame_via_tous_les_switchs(&reseau, 0, 1, message, strlen((char*)message));
     return 0;
 }

@@ -22,4 +22,5 @@ void afficherTrameUser(TrameEthernet *trame, int dataLength);
 void afficherTrameHexa(TrameEthernet *trame, size_t dataLength);
 size_t calculerDataLength(uint8_t *data, size_t max_length);
 
+
 #endif //TRAM_H

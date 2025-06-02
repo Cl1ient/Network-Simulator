@@ -1,6 +1,7 @@
 #include "../include/reseau.h"
 #include "../include/graphe.h"
 #include "../include/algos.h"
+#include "../include/tram.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,3 +71,46 @@ void afficher_reseau(reseau *reseau) {
     afficher(&reseau->graphe);
 }
 
+
+void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst, uint8_t *donnees, size_t longueur) {
+    if (!r || id_src >= r->nb_stations || id_dst >= r->nb_stations) {
+        printf("ID invalide pour les stations.\n");
+        return;
+    }
+
+    TrameEthernet trame;
+
+    // Remplir la trame
+    memset(&trame, 0, sizeof(TrameEthernet));
+    memset(trame.preambule, 0xAA, 7);  // Préambule
+    trame.sfd = 0xAB;
+
+    trame.adresse_source = r->stations[id_src].mac;
+    trame.adresse_destination = r->stations[id_dst].mac;
+
+    trame.type[0] = 0x08;
+    trame.type[1] = 0x00;
+
+    memcpy(trame.data, donnees, longueur);
+
+    // FCS bidon (exemple)
+    memset(trame.fcs, 0xDE, 4);
+
+    // Passage par tous les switchs dans l’ordre de création
+    printf("\n--- Début de l'envoi ---\n");
+    printf("Station source [%zu] => Station destination [%zu]\n", id_src, id_dst);
+
+    for (size_t i = 0; i < r->nb_switch; i++) {
+        printf("→ Passage par Switch %zu : ", i);
+        afficherMac(r->switchs[i].adresseMac);
+        ajouter_commutation(&r->switchs[i], trame.adresse_source, 0);
+        ajouter_commutation(&r->switchs[i], trame.adresse_destination, 1);
+    }
+
+    printf("\nTrame reçue par la station destination :\n");
+    afficherTrameUser(&trame, longueur);
+}
+
+void renvoyer_tram() {
+
+}

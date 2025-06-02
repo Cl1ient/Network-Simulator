@@ -25,3 +25,4 @@ bool ajouter_station(reseau *reseau, station nv);
 bool ajouter_switch(reseau *reseau, Switch nv);
 bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids);   // connecter deux equipement (ajouter un arete)
 void afficher_reseau(reseau *reseau);
+void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst, uint8_t *donnees, size_t longueur);
