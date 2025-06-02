@@ -3,54 +3,58 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-#define MAX_SIZE 1024
-
-void lireFichierConfiguration(const char *nomFichier, reseau *reseau) {
-    FILE *fichier = fopen(nomFichier, "r");
+void lireFichierConfiguration(char *nomFichier, reseau *r) {
+    FILE *fichier = fopen(nomFichier, "r");     // ouvre le fichier en lecture
     if (!fichier) {
-        printf("Impossible d'ouvrir le fichier %s\n", nomFichier);
+        printf("Erreur: impossible d'ouvrir le fichier %s\n", nomFichier);
         return;
     }
 
-    char ligne[MAX_SIZE];
+    init_reseau(r);     // initialise un reseau, vide
 
+    char ligne[1024];
+
+    // lecture de la première ligne (nb equ + liens)
     size_t nb_equipements, nb_liens;
-
-    //Lecture de la premiere ligne (nb équipements + liens)
-    fgets(ligne, MAX_SIZE, fichier);
+    fgets(ligne, 1024, fichier);
     sscanf(ligne, "%zu %zu", &nb_equipements, &nb_liens);
-    printf("Nombre d'équipements : %zu, Nombre de liens : %zu\n", nb_equipements, nb_liens);
+    printf("Nombres d'équipements et de liens : %zu équipements, %zu liens\n", nb_equipements, nb_liens);
 
-    //Lecture des équipements (switchs et stations)
-    size_t i = 0;
-    while (i < nb_equipements && fgets(ligne, MAX_SIZE, fichier)) {
+    // Lire les équipements
+    for (size_t i = 0; i < nb_equipements; i++) {
         int type;
-        char mac_str[18], ip_str[16] = "";
-        size_t nb_ports = 0, priorite = 0;
+        fgets(ligne, 1024, fichier);  // lire la ligne entière
 
-        if (sscanf(ligne, "%d ; %17s ; %zu ; %zu", &type, mac_str, &nb_ports, &priorite) == 4) {
-            Switch sw = creer_switch(mac_str, nb_ports, priorite);
-            ajouter_switch(reseau, sw);
-            afficher_switch(&sw);
-        } else if (sscanf(ligne, "%d ; %17s ; %15s", &type, mac_str, ip_str) == 3) {
-            station st = creer_station(mac_str, ip_str);
-            ajouter_station(reseau, st);
-            afficher_station(&st);
+        char mac_str[18] = "";  // pour stocker l'adresse MAC
+        char ip_str[16] = "";   // pour stocker l'adresse IP
+        int nb_ports = 0, priorite = 0;
+
+        // on essaie de lire comme switch
+        if (sscanf(ligne, "%d ; %17s ; %d ; %d", &type, mac_str, &nb_ports, &priorite) == 4 && type == EQUIPEMENT_SWITCH) {
+        AdresseMac mac;
+        string_to_mac(&mac, mac_str);
+        ajouter_switch(r, &mac, nb_ports, priorite);
+        } 
+
+        // Sinon, lecture comme station
+        else if (sscanf(ligne, "%d ; %17s ; %15s", &type, mac_str, ip_str) == 3 && type == EQUIPEMENT_STATION) {
+            AdresseMac mac;
+            AdresseIP ip;
+            string_to_mac(&mac, mac_str);
+            string_to_ip(&ip, ip_str);
+            ajouter_station(r, &mac, &ip);
         }
-        printf("\n");
-        i++;
     }
 
-    //Lecture des liens
-    size_t j = 0;
-    while (j < nb_liens && fgets(ligne, MAX_SIZE, fichier)) {
-        size_t id1, id2, poids;
-        sscanf(ligne, "%zu ; %zu ; %zu", &id1, &id2, &poids);
-        connecter_equipement(reseau, id1, id2, poids);
-        printf("Connexion ajoutée : %zu ↔ %zu (Poids=%zu)\n", id1, id2, poids);
-        j++;
+    // Lire les liens
+    for (int i = 0; i < nb_liens; i++) {
+        fgets(ligne, 1024, fichier);
+        int eq1, eq2, cout;
+        sscanf(ligne, "%d;%d;%d", &eq1, &eq2, &cout);
+
+        ajouter_lien(r, eq1, eq2, cout);
     }
 
     fclose(fichier);
+    printf("Configuration chargée avec succès\n");
 }

@@ -1,5 +1,9 @@
+/*
+Lire le fichier de config
+*/
+
 #pragma once
 #include "reseau.h"
 
-void lireFichierConfiguration(const char *nomFichier, reseau *reseau);
+void lireFichierConfiguration(char *nomFichier, reseau *reseau);
 

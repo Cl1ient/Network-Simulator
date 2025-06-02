@@ -1,26 +1,32 @@
+/*
+Tout ce qui est lié à la gestion d'adresses du réseau
+Gère l'initialisation, la lecture depuis un string, l'affichage, la comparaison
+*/
+
 #pragma once
 
-
 #include <stdint.h>
+#include <stdbool.h>
 
-
-
-// Structure d'adresse MAC : 6 octets
-typedef struct AdresseMac{
+// adresse MAC (6 octets)
+typedef struct {
     uint8_t octets[6];
 } AdresseMac;
 
-// Structure d'adresse IP : 4 octets
-typedef struct AdresseIP{
+// adresse IP (4 octets)
+typedef struct {
     uint8_t octets[4];
 } AdresseIP;
 
-char * mac_to_string(AdresseMac mac, char * str_mac);
-int string_to_mac(char* str, AdresseMac *mac);
-void afficherMac(AdresseMac m);
+// adresse MAC
+void init_AdresseMac(AdresseMac *mac, uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4, uint8_t o5, uint8_t o6);  // o = octet
+void string_to_mac(AdresseMac *mac, char *str);
+void afficher_AdresseMac(AdresseMac *mac);
+bool comparer_AdresseMac(AdresseMac *mac1, AdresseMac *mac2);
+int comparer_AdresseMac_ordre(AdresseMac *mac1, AdresseMac *mac2);
 
-
-char* ip_to_string(AdresseIP ip, char* str_ip);
-int string_to_ip(char* str, AdresseIP *ip);
-void afficherIp(AdresseIP ip);
-
+// Fonctions pour adresse IP
+void init_AdresseIP(AdresseIP *ip, uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4);
+void string_to_ip(AdresseIP *ip, char *str);
+void afficher_AdresseIP(AdresseIP *ip);
+bool comparer_AdresseIP(AdresseIP *ip1, AdresseIP *ip2);

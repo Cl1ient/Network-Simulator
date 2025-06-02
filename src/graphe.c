@@ -25,12 +25,12 @@ void deinit_graphe(graphe *g)
     g->nb_aretes=0;
 }
 
-size_t ordre(graphe const *g)
+size_t ordre(graphe *g)
 {
     return g->ordre;
 }
 
-size_t nb_aretes(graphe const *g)
+size_t nb_aretes(graphe *g)
 {
     return g->nb_aretes;
 }
@@ -40,7 +40,7 @@ void ajouter_sommet(graphe *g)
     g->ordre++;
 }
 
-size_t index_sommet(graphe const *g, sommet s)
+size_t index_sommet(graphe *g, sommet s)
 {
     // retourne l'index du sommet s dans le graphe g
     // la valeur UNKNOWN_INDEX si le sommet n'existe pas dans g
@@ -63,7 +63,7 @@ static arete swap_sommets(arete a)
 }
 
 
-bool existe_arete(graphe const *g, arete a)
+bool existe_arete(graphe *g, arete a)
 {
     // retourne true si l'arête a est contenue dans le graphe g, false sinon
     // /!\ l'arête (s1,s2) et l'arête (s2,s1) sont considérées équivalentes
@@ -122,7 +122,7 @@ bool ajouter_arete(graphe *g, arete a)
     return true;
 }
 
-size_t index_arete(graphe const *g, arete a)
+size_t index_arete(graphe *g, arete a)
 {
     // retourne l'index de l'arête au sein du tableau d'arêtes de g si l'arête a existe dans g,
     // la valeur UNKNOWN_INDEX sinon
@@ -141,7 +141,7 @@ size_t index_arete(graphe const *g, arete a)
     return UNKNOWN_INDEX;
 }
 
-size_t sommets_adjacents(graphe const *g, sommet s, sommet sa[])
+size_t sommets_adjacents(graphe *g, sommet s, sommet sa[])
 {
     // remplit le tableau sa avec les sommets adjacents de s dans g
     // et retourne le nombre de sommets ainsi stockés
