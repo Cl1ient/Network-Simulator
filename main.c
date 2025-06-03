@@ -86,6 +86,6 @@ int main() {
     afficherTrameUser(&trame, data_length);
     afficherTrameHexa(&trame, data_length);
     uint8_t message[1500] = "Hello via tous les switches !";
-    envoyer_trame_via_tous_les_switchs(&reseau, 0, 1, message, strlen((char*)message));
-    return 0;
+    afficher_reseau(&reseau);
+envoyer_trame_via_tous_les_switchs(&reseau, 0, 1, message, strlen((char*)message));    return 0;
 }

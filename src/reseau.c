@@ -33,7 +33,6 @@ bool ajouter_switch(reseau *reseau, Switch nv) {
     reseau->switchs[reseau->nb_switch] = nv;
     reseau->nb_switch++;
     return true;
-
 }
 
 // Connexion de deux équipements (ajt d’une arete dans le graphe)
@@ -72,6 +71,43 @@ void afficher_reseau(reseau *reseau) {
 }
 
 
+// Fonction récursive d'envoi
+void envoyer_trame_recursif(reseau *r, size_t courant, size_t id_dst, TrameEthernet *trame, int *visites) {
+    printf("Appel envoyer_trame_recursif sur %zu\n", courant); // Ajoute cette ligne
+
+    
+    if (visites[courant]) return;
+    visites[courant] = 1;
+
+    // Si on est sur la station de destination
+    if (courant == id_dst) {
+        printf("\nTrame reçue par la station destination [%zu] :\n", id_dst);
+        afficherTrameUser(trame, 46); // ou longueur réelle
+        return;
+    }
+
+    // Si on est sur un switch, mettre à jour la table de commutation
+    if (courant >= r->nb_stations) {
+        size_t id_switch = courant - r->nb_stations;
+        printf("→ Passage par Switch %zu : ", id_switch);
+        afficherMac(r->switchs[id_switch].adresseMac);
+        ajouter_commutation(&r->switchs[id_switch], trame->adresse_source, 0);
+        ajouter_commutation(&r->switchs[id_switch], trame->adresse_destination, 1);
+    }
+
+    // Parcourir les voisins dans le graphe
+    for (size_t i = 0; i < r->graphe.nb_aretes; i++) {
+        arete a = r->graphe.aretes[i];
+        size_t voisin = SIZE_MAX;
+        if (a.s1 == courant) voisin = a.s2;
+        else if (a.s2 == courant) voisin = a.s1;
+        else continue;
+
+        printf("Appel récursif de %zu vers %zu\n", courant, voisin); // Ajoute cette ligne
+        envoyer_trame_recursif(r, voisin, id_dst, trame, visites);
+    }
+}
+
 void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst, uint8_t *donnees, size_t longueur) {
     if (!r || id_src >= r->nb_stations || id_dst >= r->nb_stations) {
         printf("ID invalide pour les stations.\n");
@@ -79,36 +115,22 @@ void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst,
     }
 
     TrameEthernet trame;
-
-    // Remplir la trame
     memset(&trame, 0, sizeof(TrameEthernet));
-    memset(trame.preambule, 0xAA, 7);  // Préambule
+    memset(trame.preambule, 0xAA, 7);
     trame.sfd = 0xAB;
-
     trame.adresse_source = r->stations[id_src].mac;
     trame.adresse_destination = r->stations[id_dst].mac;
-
     trame.type[0] = 0x08;
     trame.type[1] = 0x00;
-
     memcpy(trame.data, donnees, longueur);
-
-    // FCS bidon (exemple)
     memset(trame.fcs, 0xDE, 4);
 
-    // Passage par tous les switchs dans l’ordre de création
     printf("\n--- Début de l'envoi ---\n");
     printf("Station source [%zu] => Station destination [%zu]\n", id_src, id_dst);
 
-    for (size_t i = 0; i < r->nb_switch; i++) {
-        printf("→ Passage par Switch %zu : ", i);
-        afficherMac(r->switchs[i].adresseMac);
-        ajouter_commutation(&r->switchs[i], trame.adresse_source, 0);
-        ajouter_commutation(&r->switchs[i], trame.adresse_destination, 1);
-    }
-
-    printf("\nTrame reçue par la station destination :\n");
-    afficherTrameUser(&trame, longueur);
+    int *visites = calloc(r->nb_stations + r->nb_switch, sizeof(int));
+    envoyer_trame_recursif(r, id_src, id_dst, &trame, visites);
+    free(visites);
 }
 
 void renvoyer_tram() {
