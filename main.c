@@ -3,6 +3,7 @@
 #include "include/config.h"
 #include "include/adresse.h"
 #include "include/tram.h"
+#include "include/switch.h"
 
 int main() {
     /*AdresseMac mac;
@@ -87,5 +88,18 @@ int main() {
     afficherTrameHexa(&trame, data_length);
     uint8_t message[1500] = "Hello via tous les switches !";
     afficher_reseau(&reseau);
-envoyer_trame_via_tous_les_switchs(&reseau, 0, 1, message, strlen((char*)message));    return 0;
+    envoyer_trame_via_tous_les_switchs(&reseau, 0, 1, message, strlen((char*)message));    
+    
+    // Affichage des tables de commutation de tous les switches
+    printf("\n--- Tables de commutation des switches ---\n");
+    for (int i = 0; i < reseau.nb_equipements; i++) {
+        if (reseau.equipements[i].type == EQUIPEMENT_SWITCH) {
+            printf("Switch %d :\n", i);
+            afficher_table_commutation(&reseau.equipements[i].equipement.sw);
+            printf("\n");
+        }
+    }
+
+
+    return 0;
 }

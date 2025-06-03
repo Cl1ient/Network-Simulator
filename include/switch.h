@@ -19,3 +19,4 @@ typedef struct Switch{
 Switch creer_switch(char* mac_str, size_t nb_port, int priorite);
 void ajouter_commutation(Switch* sw, AdresseMac mac, size_t port);  // pour ajt une entrée dans la table
 void afficher_switch(Switch *sw);
+void afficher_table_commutation(Switch *sw);

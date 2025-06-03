@@ -8,31 +8,13 @@
 
 reseau creer_reseau() {
     reseau r;
-    r.nb_stations = 0;
-    r.nb_switch = 0;
-    r.stations = NULL;
-    r.switchs = NULL;
+    r.nb_equipements = 0;
+    r.nb_equipements = 0;
+
 
     init_graphe(&r.graphe);
 
     return r;
-}
-
-// ajt d'une station dans le rres
-bool ajouter_station(reseau *reseau, station nv) {
-    reseau->stations = realloc(reseau->stations, (reseau->nb_stations + 1) * sizeof(station));
-    reseau->stations[reseau->nb_stations] = nv;
-    reseau->nb_stations++;
-    return true;
-
-}
-
-// ajt switch
-bool ajouter_switch(reseau *reseau, Switch nv) {
-    reseau->switchs = realloc(reseau->switchs, (reseau->nb_switch + 1) * sizeof(Switch));
-    reseau->switchs[reseau->nb_switch] = nv;
-    reseau->nb_switch++;
-    return true;
 }
 
 // Connexion de deux équipements (ajt d’une arete dans le graphe)
@@ -48,24 +30,19 @@ bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids) {
 
 
 
-// Affichage du réseau
 void afficher_reseau(reseau *reseau) {
     if (!reseau) {
         printf("Réseau invalide\n");
         return;
     }
-
     printf("Réseau\n");
-    printf("Stations : %zu\n", reseau->nb_stations);
-    for (size_t i = 0; i < reseau->nb_stations; i++) {
-        afficher_station(&reseau->stations[i]);
+    printf("Équipements : %d\n", reseau->nb_equipements);
+    for (int i = 0; i < reseau->nb_equipements; i++) {
+        if (reseau->equipements[i].type == EQUIPEMENT_STATION)
+            afficher_station(&reseau->equipements[i].equipement.st);
+        else if (reseau->equipements[i].type == EQUIPEMENT_SWITCH)
+            afficher_switch(&reseau->equipements[i].equipement.sw);
     }
-
-    printf("\nSwitchs : %zu\n", reseau->nb_switch);
-    for (size_t i = 0; i < reseau->nb_switch; i++) {
-        afficher_switch(&reseau->switchs[i]);
-    }
-
     printf("\nStructure du graphe :\n");
     afficher(&reseau->graphe);
 }
@@ -73,9 +50,8 @@ void afficher_reseau(reseau *reseau) {
 
 // Fonction récursive d'envoi
 void envoyer_trame_recursif(reseau *r, size_t courant, size_t id_dst, TrameEthernet *trame, int *visites) {
-    printf("Appel envoyer_trame_recursif sur %zu\n", courant); // Ajoute cette ligne
+    printf("Appel envoyer_trame_recursif sur %zu\n", courant);
 
-    
     if (visites[courant]) return;
     visites[courant] = 1;
 
@@ -87,12 +63,11 @@ void envoyer_trame_recursif(reseau *r, size_t courant, size_t id_dst, TrameEther
     }
 
     // Si on est sur un switch, mettre à jour la table de commutation
-    if (courant >= r->nb_stations) {
-        size_t id_switch = courant - r->nb_stations;
-        printf("→ Passage par Switch %zu : ", id_switch);
-        afficherMac(r->switchs[id_switch].adresseMac);
-        ajouter_commutation(&r->switchs[id_switch], trame->adresse_source, 0);
-        ajouter_commutation(&r->switchs[id_switch], trame->adresse_destination, 1);
+    if (r->equipements[courant].type == EQUIPEMENT_SWITCH) {
+        printf("→ Passage par Switch %zu : ", courant);
+        afficherMac(r->equipements[courant].equipement.sw.adresseMac);
+        ajouter_commutation(&r->equipements[courant].equipement.sw, trame->adresse_source, 0);
+        ajouter_commutation(&r->equipements[courant].equipement.sw, trame->adresse_destination, 1);
     }
 
     // Parcourir les voisins dans le graphe
@@ -103,14 +78,14 @@ void envoyer_trame_recursif(reseau *r, size_t courant, size_t id_dst, TrameEther
         else if (a.s2 == courant) voisin = a.s1;
         else continue;
 
-        printf("Appel récursif de %zu vers %zu\n", courant, voisin); // Ajoute cette ligne
+        printf("Appel récursif de %zu vers %zu\n", courant, voisin);
         envoyer_trame_recursif(r, voisin, id_dst, trame, visites);
     }
 }
 
 void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst, uint8_t *donnees, size_t longueur) {
-    if (!r || id_src >= r->nb_stations || id_dst >= r->nb_stations) {
-        printf("ID invalide pour les stations.\n");
+    if (!r || id_src >= r->nb_equipements || id_dst >= r->nb_equipements) {
+        printf("ID invalide pour les équipements.\n");
         return;
     }
 
@@ -118,21 +93,23 @@ void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst,
     memset(&trame, 0, sizeof(TrameEthernet));
     memset(trame.preambule, 0xAA, 7);
     trame.sfd = 0xAB;
-    trame.adresse_source = r->stations[id_src].mac;
-    trame.adresse_destination = r->stations[id_dst].mac;
+    if (r->equipements[id_src].type == EQUIPEMENT_STATION)
+        trame.adresse_source = r->equipements[id_src].equipement.st.mac;
+    else
+        trame.adresse_source = r->equipements[id_src].equipement.sw.adresseMac;
+    if (r->equipements[id_dst].type == EQUIPEMENT_STATION)
+        trame.adresse_destination = r->equipements[id_dst].equipement.st.mac;
+    else
+        trame.adresse_destination = r->equipements[id_dst].equipement.sw.adresseMac;
     trame.type[0] = 0x08;
     trame.type[1] = 0x00;
     memcpy(trame.data, donnees, longueur);
     memset(trame.fcs, 0xDE, 4);
 
     printf("\n--- Début de l'envoi ---\n");
-    printf("Station source [%zu] => Station destination [%zu]\n", id_src, id_dst);
+    printf("Source [%zu] => Destination [%zu]\n", id_src, id_dst);
 
-    int *visites = calloc(r->nb_stations + r->nb_switch, sizeof(int));
+    int *visites = calloc(r->nb_equipements, sizeof(int));
     envoyer_trame_recursif(r, id_src, id_dst, &trame, visites);
     free(visites);
-}
-
-void renvoyer_tram() {
-
 }

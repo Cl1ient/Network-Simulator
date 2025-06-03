@@ -60,3 +60,16 @@ void afficher_switch(Switch* sw) {
         }
     }
 }
+
+void afficher_table_commutation(Switch *sw) {
+    printf("Table de commutation du switch (MAC → port) :\n");
+    for (size_t i = 0; i < sw->nb_ports; i++) {
+        if (sw->table_commutation[i] != 0) {
+            AdresseMac mac;
+            memcpy(mac.octets, &sw->table_commutation[i], sizeof(AdresseMac));
+            char mac_str[18];
+            mac_to_string(mac, mac_str);
+            printf("Port %zu → MAC %s\n", i, mac_str);
+        }
+    }
+}

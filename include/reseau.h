@@ -16,14 +16,6 @@
 #define MAX_EQUIPEMENTS 100
 
 
-typedef struct reseau{
-    graphe graphe; // structure du reseau sous forme de grapghe
-    equipement equipements[MAX_EQUIPEMENTS];
-    int nb_equipements;
-    int nb_switches;  // Nombre de switch
-    // on s'en fout du nb de stations, parceque c'est tout ce qui reste
-} reseau;
-
 typedef enum {
     EQUIPEMENT_STATION = 1,
     EQUIPEMENT_SWITCH = 2
@@ -38,6 +30,15 @@ typedef struct {
     type_equipement type;
     union_equipement equipement;
 } equipement;
+
+
+typedef struct reseau{
+    graphe graphe; // structure du reseau sous forme de grapghe
+    equipement equipements[MAX_EQUIPEMENTS];
+    int nb_equipements;
+    int nb_switches;  // Nombre de switch
+    // on s'en fout du nb de stations, parceque c'est tout ce qui reste
+} reseau;
 
 
 

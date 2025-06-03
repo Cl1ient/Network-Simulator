@@ -22,6 +22,9 @@ void lireFichierConfiguration(const char *nomFichier, reseau *reseau) {
     sscanf(ligne, "%zu %zu", &nb_equipements, &nb_liens);
     printf("Nombre d'équipements : %zu, Nombre de liens : %zu\n", nb_equipements, nb_liens);
 
+    reseau->nb_equipements = 0;
+    reseau->nb_switches=0;
+
     //Lecture des équipements (switchs et stations)
     size_t i = 0;
     while (i < nb_equipements && fgets(ligne, MAX_SIZE, fichier)) {
@@ -30,13 +33,21 @@ void lireFichierConfiguration(const char *nomFichier, reseau *reseau) {
         size_t nb_ports = 0, priorite = 0;
 
         if (sscanf(ligne, "%d ; %17s ; %zu ; %zu", &type, mac_str, &nb_ports, &priorite) == 4) {
-            Switch sw = creer_switch(mac_str, nb_ports, priorite);
-            ajouter_switch(reseau, sw);
-            afficher_switch(&sw);
+            equipement eq;
+            eq.type = EQUIPEMENT_SWITCH;
+            eq.equipement.sw = creer_switch(mac_str, nb_ports, priorite);
+            reseau->equipements[reseau->nb_equipements++] = eq;
+            reseau->nb_switches++;
+            afficher_switch(&eq.equipement.sw);
+            ajouter_sommet(&reseau->graphe); 
+
         } else if (sscanf(ligne, "%d ; %17s ; %15s", &type, mac_str, ip_str) == 3) {
-            station st = creer_station(mac_str, ip_str);
-            ajouter_station(reseau, st);
-            afficher_station(&st);
+            equipement eq;
+            eq.type = EQUIPEMENT_STATION;
+            eq.equipement.st = creer_station(mac_str, ip_str);
+            reseau->equipements[reseau->nb_equipements++] = eq;
+            afficher_station(&eq.equipement.st);
+            ajouter_sommet(&reseau->graphe);
         }
         printf("\n");
         i++;
