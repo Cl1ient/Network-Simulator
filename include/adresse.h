@@ -24,3 +24,4 @@ char* ip_to_string(AdresseIP ip, char* str_ip);
 int string_to_ip(char* str, AdresseIP *ip);
 void afficherIp(AdresseIP ip);
 
+int comparer_mac(const AdresseMac mac1, const AdresseMac mac2);

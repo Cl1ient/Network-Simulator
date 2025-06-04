@@ -8,15 +8,24 @@
 #include <stdio.h>
 #include "adresse.h"
 
-// represente un switch d'un réseau
-typedef struct Switch{
-    AdresseMac adresseMac;     // adr mac unique du switch
+
+typedef struct {
+    AdresseMac mac;
+    size_t port;
+    int valide;        // 0 si false, 1 si true
+} EntreeTableCommutation;
+
+typedef struct Switch_s {
+    AdresseMac adresseMac;
     size_t nb_ports;
     int priorite;
-    size_t *table_commutation;      //pour associer une adresse mac à un port du switch
-} Switch;
+    EntreeTableCommutation *table_commutation;
+} Switch_s;
 
-Switch creer_switch(char* mac_str, size_t nb_port, int priorite);
-void ajouter_commutation(Switch* sw, AdresseMac mac, size_t port);  // pour ajt une entrée dans la table
-void afficher_switch(Switch *sw);
-void afficher_table_commutation(Switch *sw);
+
+
+Switch_s creer_switch(char* mac_str, size_t nb_port, int priorite);
+void ajouter_commutation(Switch_s* sw, AdresseMac mac, size_t port);  // pour ajt une entrée dans la table
+void afficher_switch(Switch_s *sw);
+void afficher_table_commutation(Switch_s *sw);
+

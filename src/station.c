@@ -8,6 +8,9 @@
 #include <string.h>
 
 #include "../include/adresse.h"
+#include "../include/reseau.h"
+
+#include "../include/tram.h"
 
 // verifie que les adresses sont valide et creer la station
 station creer_station(char* mac_str, char* ip_str) {

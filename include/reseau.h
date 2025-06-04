@@ -23,7 +23,7 @@ typedef enum {
 
 typedef union union_equipement {
     station st;
-    Switch sw;
+    Switch_s sw;
 } union_equipement;
 
 typedef struct {
@@ -44,8 +44,16 @@ typedef struct reseau{
 
 reseau creer_reseau();  // creation d'un reseau vide
 bool ajouter_station(reseau *reseau, station nv);
-bool ajouter_switch(reseau *reseau, Switch nv);
+bool ajouter_switch(reseau *reseau, Switch_s nv);
 bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids);   // connecter deux equipement (ajouter un arete)
 void afficher_reseau(reseau *reseau);
 void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst, uint8_t *donnees, size_t longueur);
-void envoyer_trame_recursif(reseau *r, size_t courant, size_t id_dst, TrameEthernet *trame, int *visites);
+
+
+
+
+size_t port_entre_de_precedent(reseau *r, size_t id_switch, size_t id_voisin);
+size_t chercher_port_mac(Switch_s *sw, AdresseMac mac);
+size_t voisin_sur_port(reseau *r, size_t id_switch, size_t port);
+int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t id_precedent);
+void envoyer_trame(reseau *r, size_t id_station_source, TrameEthernet *trame);

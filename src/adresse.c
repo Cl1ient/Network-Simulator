@@ -41,3 +41,11 @@ void afficherIp(AdresseIP ip) {
     printf("Adresse IP : %s\n", str_ip);
 }
 
+// Fonction pour comparer les adresses MAC
+int comparer_mac(const AdresseMac mac1, const AdresseMac mac2) {
+    for (int i = 0; i < 6; i++) {
+        if (mac1.octets[i] != mac2.octets[i])
+            return 0;
+    }
+    return 1;
+}
