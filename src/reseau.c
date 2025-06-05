@@ -130,42 +130,50 @@ int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t 
         Switch_s *sw = &eq->equipement.sw;  // Récupère le switch
         size_t port_entree = port_entre_de_precedent(r, id_actuel, id_precedent);    // Trouve le port par lequel la trame est arrivée
 
-        printf("[Switch %zu] Trame reçue via port %zu (venant de %zu)\n", id_actuel, port_entree, id_precedent);
+        printf("╔═ [Switch %zu] Trame reçue via port %zu (de %zu)\n", id_actuel, port_entree, id_precedent);
 
         //  ajoute l'adresse source à la table du switch
         ajouter_commutation(sw, trame->adresse_source, port_entree);
-        printf("[Switch %zu] Apprentissage MAC source %s → port %zu\n", id_actuel, mac_to_string(trame->adresse_source, str_mac_src), port_entree);
+        printf("║  Apprentissage : MAC %s → port %zu\n", mac_to_string(trame->adresse_source, str_mac_src), port_entree);        
+        
         // Recherche si le switch connaît la MAC destination
         size_t port_dest = chercher_port_mac(sw, trame->adresse_destination);
+        mac_to_string(trame->adresse_destination, str_mac_dst);
 
         if (port_dest != -1) {
             size_t voisin = voisin_sur_port(r, id_actuel, port_dest);   // Récupère le voisin connecté à ce port
-            printf("[Switch %zu] MAC destination %s connue → envoi vers port %zu (vers %zu)\n", id_actuel, mac_to_string(trame->adresse_destination, str_mac_dst), port_dest, voisin);            
+            printf("║  Destination connue : MAC %s → port %zu (vers %zu)\n", str_mac_dst, port_dest, voisin);
+        
             if (envoyer_trame_rec(r, voisin, trame, id_actuel)) {   // Envoie la trame à ce voisin
                 return 1;
             }
+
         } else {
-            printf("[Switch %zu] MAC destination %s inconnue → diffusion vers autres ports\n", id_actuel, mac_to_string(trame->adresse_destination, str_mac_dst));             // Si la MAC destination est inconnue → diffusion
+
+            printf("║  Destination inconnue : MAC %s → diffusion\n", str_mac_dst);
             sommet voisins[32];
             size_t nb_voisins = sommets_adjacents(&r->graphe, id_actuel, voisins);  // Récupère tous les voisins
 
-            for (size_t i = 0; i < nb_voisins; i++) {    // Parcourt tous les ports/voisins
-                if (i == port_entree) continue; // Ne pas renvoyer la trame d’où elle vient
+            for (size_t i = 0; i < nb_voisins; i++) {
+            if (voisins[i] == id_precedent) continue;
 
-                printf("     [Switch %zu] -> Diffusion vers port %zu (vers %zu)\n", id_actuel, i, voisins[i]);
+                printf("║    ↳ Port %zu → %zu\n", i, voisins[i]);
                 if (envoyer_trame_rec(r, voisins[i], trame, id_actuel)) {
                     return 1;
                 }
             }
         }
 
+        printf("╚═ [Switch %zu] Trame non transmise\n", id_actuel);
+
     } else if (eq->type == EQUIPEMENT_STATION) {    // Si on atteint une station
         station *st = &eq->equipement.st;
         if (comparer_mac(st->mac, trame->adresse_destination)) {    // Si c’est la station destinataire
-            printf(">>> Trame reçue par la station destination !\n");    // Affiche que la trame est reçue
+            printf("\033[1;32m🎯 [Station %zu] Trame reçue par la destination (%s)\033[0m\n", id_actuel, mac_to_string(trame->adresse_destination, str_mac_dst));    // Affiche que la trame est reçue
+            return 1;
         }
         else {
-            printf("[Station %zu] Trame ignorée (MAC ne correspond pas)\n", id_actuel);
+            printf("⛔ [Station %zu] Trame ignorée (pas la bonne MAC)\n", id_actuel);
         }
     }
     return 0;   // pas trouvé

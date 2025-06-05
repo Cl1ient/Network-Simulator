@@ -43,6 +43,14 @@ void ajouter_commutation (Switch_s* sw, AdresseMac mac, size_t port) {
         return;
     }
 
+    // Si la mac y est déja, on ne la rajoute pas.
+    for (int i = 0; i < sw->nb_asso; i++) {
+        if (comparer_mac(sw->table_commutation[i].mac, mac) && sw->table_commutation[i].port == port) {
+            // Déjà présent : ne rien faire
+            return;
+        }
+    }
+
     sw->table_commutation[sw->nb_asso].mac = mac;
     sw->table_commutation[sw->nb_asso].port = port;
     sw->table_commutation[sw->nb_asso].valide = 1;

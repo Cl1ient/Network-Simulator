@@ -30,7 +30,7 @@ int main() {
     // Envois de trames
     envoyer_message(&reseau, 7, 14, "Salut 14, ici 7 !");
     envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
-    envoyer_message(&reseau, 8, 11, "Hello de 8 vers 11 !");
+    envoyer_message(&reseau, 8, 7, "Hello de 8 vers 7 !");
     envoyer_message(&reseau, 7, 8, "Message 7 -> 8 !");
     envoyer_message(&reseau,14, 8, "Ping 14 - 8 !");
     envoyer_message(&reseau, 8, 14, "Pong 8 - 14 !");
