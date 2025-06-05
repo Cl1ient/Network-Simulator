@@ -22,15 +22,11 @@ Switch_s creer_switch(char* mac_str, size_t nb_ports, int prio) {
 
     sw.nb_ports = nb_ports;
     sw.priorite = prio;
+    sw.nb_asso = 0;
 
-    // on alloue la table de commut (chaque port peut stocker une adresse)
-    sw.table_commutation = malloc(nb_ports * sizeof(EntreeTableCommutation));
-    if (!sw.table_commutation) {
-        printf("L'allocation mémoire pour la table de commutation a échoué\n");
-    } else {
-        for (size_t i = 0; i < nb_ports; i++) {
-            sw.table_commutation[i].valide = 0;
-        }
+    // on initialise toutes les entrées comme invalides
+    for (size_t i = 0; i < MAX_ENTREES_COMMUTATION; i++) {
+        sw.table_commutation[i].valide = 0;
     }
 
     return sw;
@@ -38,14 +34,19 @@ Switch_s creer_switch(char* mac_str, size_t nb_ports, int prio) {
 
 // ajt d'une entrée dans la table
 void ajouter_commutation (Switch_s* sw, AdresseMac mac, size_t port) {
-    if (!sw || port >= sw->nb_ports) {
-        printf("Port invalide\n");
+    if (!sw) {
         return;
     }
 
-    sw->table_commutation[port].mac = mac;
-    sw->table_commutation[port].port = port;
-    sw->table_commutation[port].valide = 1;
+    if (sw->nb_asso >= MAX_ENTREES_COMMUTATION) {
+        printf("Table de commutation pleine\n");
+        return;
+    }
+
+    sw->table_commutation[sw->nb_asso].mac = mac;
+    sw->table_commutation[sw->nb_asso].port = port;
+    sw->table_commutation[sw->nb_asso].valide = 1;
+    sw->nb_asso++;
 
 }
 

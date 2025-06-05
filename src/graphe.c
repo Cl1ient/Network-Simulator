@@ -110,9 +110,16 @@ bool ajouter_arete(graphe *g, arete a)
     }
 
     if (g->nb_aretes >= g->aretes_capacite){
-        g->aretes_capacite *= 2;
-        g->aretes = realloc(g->aretes, g->aretes_capacite * sizeof(arete));
+        int nouvelle_capacite = g->aretes_capacite * 2;
+        arete* tmp = realloc(g->aretes, nouvelle_capacite * sizeof(arete));
+        if (tmp == NULL) {
+            // realloc a échoué, on ne touche pas à g->aretes
+            return false;
+        }
+        g->aretes = tmp;
+        g->aretes_capacite = nouvelle_capacite;
     }
+
 
     g->aretes[g->nb_aretes] = a;
     g->aretes[g->nb_aretes].poids = a.poids;        // ajout de l'arete

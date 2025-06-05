@@ -35,7 +35,7 @@ void afficher_reseau(reseau *reseau) {
         printf("Réseau invalide\n");
         return;
     }
-    printf("Réseau\n");
+    printf("Réseau\n\n");
     printf("Équipements : %d\n", reseau->nb_equipements);
     for (int i = 0; i < reseau->nb_equipements; i++) {
         if (reseau->equipements[i].type == EQUIPEMENT_STATION)
@@ -47,76 +47,15 @@ void afficher_reseau(reseau *reseau) {
     afficher(&reseau->graphe);
 }
 
-/*
-// Fonction récursive d'envoi
-void envoyer_trame_recursif(reseau *r, size_t courant, size_t id_dst, TrameEthernet *trame, int *visites) {
 
-    if (visites[courant]) return;
-    visites[courant] = 1;
 
-    // Si on est sur la station de destination
-    if (courant == id_dst) {
-        printf("\nTrame reçue par la station destination [%zu] :\n", id_dst);
-        afficherTrameUser(trame, 46); // ou longueur réelle
-        return;
-    }
 
-    // Si on est sur un switch, on peut apprendre la MAC source (optionnel ici)
-    if (r->equipements[courant].type == EQUIPEMENT_SWITCH) {
-        printf("→ Passage par Switch %zu : ", courant);
-        afficherMac(r->equipements[courant].equipement.sw.adresseMac);
-        // Optionnel : apprentissage sur le premier port libre
-        ajouter_commutation(&r->equipements[courant].equipement.sw, trame->adresse_source, 0);
-    }
 
-    // Flood sur tous les voisins non visités (pas de gestion de port d'arrivée nécessaire sans cycle)
-    for (size_t i = 0; i < r->graphe.nb_aretes; i++) {
-        arete a = r->graphe.aretes[i];
-        size_t voisin = SIZE_MAX;
-        if (a.s1 == courant) voisin = a.s2;
-        else if (a.s2 == courant) voisin = a.s1;
-        else continue;
 
-        if (!visites[voisin]) {
-            envoyer_trame_recursif(r, voisin, id_dst, trame, visites);
-        }
-    }
-}
 
-void envoyer_trame_via_tous_les_switchs(reseau *r, size_t id_src, size_t id_dst, uint8_t *donnees, size_t longueur) {
-    if (!r || id_src >= r->nb_equipements || id_dst >= r->nb_equipements) {
-        printf("ID invalide pour les équipements.\n");
-        return;
-    }
 
-    TrameEthernet trame;
-    memset(&trame, 0, sizeof(TrameEthernet));
-    memset(trame.preambule, 0xAA, 7);
-    trame.sfd = 0xAB;
 
-    trame.adresse_source = r->equipements[id_src].equipement.st.mac;
 
-    trame.adresse_destination = r->equipements[id_dst].equipement.st.mac;
-
-    trame.type[0] = 0x08;
-    trame.type[1] = 0x00;
-    memcpy(trame.data, donnees, longueur);
-    memset(trame.fcs, 0xDE, 4);
-
-    printf("\n--- Début de l'envoi ---\n");
-    printf("Source [%zu] => Destination [%zu]\n", id_src, id_dst);
-
-    int *visites = calloc(r->nb_equipements, sizeof(int));
-    // Initialiser tous les éléments à 1
-    for (int i = 0; i < r->nb_equipements; i++) {
-        visites[i] = 0;
-    }
-
-    // initialiser a 1 pour tout
-    envoyer_trame_recursif(r, id_src, id_dst, &trame, visites);
-    free(visites);
-}
-*/
 
 
 
@@ -137,13 +76,17 @@ size_t port_entre_de_precedent(reseau *r, size_t id_switch, size_t id_voisin) {
 
 
 size_t chercher_port_mac(Switch_s *sw, AdresseMac mac) {
+    if (!sw) {
+        return (size_t)-1;
+    }
+
     for (size_t i = 0; i < sw->nb_ports; i++) {     // Parcourt tous les ports du switch
         if (sw->table_commutation[i].valide &&  // Si l'entrée est valide
-            comparer_mac(sw->table_commutation[i].mac, mac)) {  // Et si l'adresse MAC correspond   
-            return i;   // On a trouvé la bonne entrée, retourne le port
+            comparer_mac(sw->table_commutation[i].mac, mac)) {  // Et si l'adresse MAC correspond       // IL VA FALLOIR RETOURNER NUM PORT   
+            return sw->table_commutation[i].port;   // On a trouvé la bonne entrée, retourne le port
         }
     }
-    return -1;  // Sinon, MAC inconnue
+    return (size_t)-1;  // Sinon, MAC inconnue
 }
 
 
@@ -156,6 +99,17 @@ size_t voisin_sur_port(reseau *r, size_t id_switch, size_t port) {
         return voisins[port];   // Retourne l'ID du voisin correspondant à ce port
     }
     return UNKNOWN_INDEX;
+}
+
+
+
+int port_utilise_par_table(Switch_s *sw, size_t port) {
+    for (size_t j=0; j< sw->nb_asso; j++) {
+        if (sw->table_commutation[j].valide && sw->table_commutation[j].port == port) {
+            return 1;   // ce port est deja utilise
+        }
+    }
+    return 0; // port libre
 }
 
 
@@ -198,11 +152,9 @@ int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t 
             for (size_t i = 0; i < nb_voisins; i++) {    // Parcourt tous les ports/voisins
                 if (i == port_entree) continue; // Ne pas renvoyer la trame d’où elle vient
 
-                if (!sw->table_commutation[i].valide) { // N'envoie que vers les ports "vides" dont on connait pas encore la mac
-                    printf("  [Switch %zu] → Diffusion vers port %zu (vers %zu)\n", id_actuel, i, voisins[i]);
-                    if (envoyer_trame_rec(r, voisins[i], trame, id_actuel)) { // Appel récursif vers le voisin
-                        return 1;
-                    }
+                printf("     [Switch %zu] -> Diffusion vers port %zu (vers %zu)\n", id_actuel, i, voisins[i]);
+                if (envoyer_trame_rec(r, voisins[i], trame, id_actuel)) {
+                    return 1;
                 }
             }
         }

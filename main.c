@@ -4,40 +4,38 @@
 #include "include/adresse.h"
 #include "include/tram.h"
 #include "include/switch.h"
+#include "include/algos.h"
 
-int main() {
+void envoyer_message(reseau *r, int index_source, int index_dest, const char *msg) {
+    AdresseMac *mac_source = &r->equipements[index_source].equipement.st.mac;
+    AdresseMac *mac_dest = &r->equipements[index_dest].equipement.st.mac;
 
-
-    reseau reseau = creer_reseau();
-    lireFichierConfiguration("mylan_no_cycle.lan", &reseau);
-
-    // Préparer les adresses source et destination (par ex. stations 3 et 4)
-    AdresseMac *mac_source = &reseau.equipements[7].equipement.st.mac;  // station 3 (index 6)
-    AdresseMac *mac_dest   = &reseau.equipements[14].equipement.st.mac;  // station 4 (index 7)
-
-    // Initialiser une trame vide
     TrameEthernet trame;
     init_trame_ethernet(&trame, mac_source, mac_dest, TYPE_IPv4);
+    set_trame_data(&trame, (uint8_t *)msg, strlen(msg));
 
-    // Remplir la trame avec des données
-    uint8_t message[] = "Hello Switch Network !";
-    set_trame_data(&trame, message, sizeof(message) - 1);  // -1 pour ne pas copier le \0
-
-    // Afficher la trame en format utilisateur (lisible)
+    printf("\n\n[TRAME de %d à %d] %s\n", index_source, index_dest, msg);
     afficher_trame_utilisateur(&trame);
-
-    // Afficher la trame en hexadécimal (plus bas niveau)
     afficher_trame_hexa(&trame);
 
-    // Envoyer la trame depuis la station 3 (index 6)
-    envoyer_trame(&reseau, 7, &trame);
+    envoyer_trame(r, index_source, &trame);
+}
 
+int main() {
+    reseau reseau = creer_reseau();
+    lireFichierConfiguration("config.lan", &reseau);
 
+    afficher(&reseau.graphe);
 
+    // Envois de trames
+    envoyer_message(&reseau, 7, 14, "Salut 14, ici 7 !");
+    envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
+    envoyer_message(&reseau, 8, 11, "Hello de 8 vers 11 !");
+    envoyer_message(&reseau, 7, 8, "Message 7 -> 8 !");
+    envoyer_message(&reseau,14, 8, "Ping 14 - 8 !");
+    envoyer_message(&reseau, 8, 14, "Pong 8 - 14 !");
 
-
-
-    // Afficher les tables de commutation des switches
+    printf("\n======== TABLES DE COMMUTATION ========\n");
     for (int i = 0; i < reseau.nb_equipements; i++) {
         if (reseau.equipements[i].type == EQUIPEMENT_SWITCH) {
             printf("Switch %d :\n", i);
@@ -45,4 +43,7 @@ int main() {
             printf("\n");
         }
     }
+
+    return 0;
+
 }

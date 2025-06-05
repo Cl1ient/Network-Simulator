@@ -8,18 +8,21 @@
 #include <stdio.h>
 #include "adresse.h"
 
+#define MAX_ENTREES_COMMUTATION 128
+
 
 typedef struct {
-    AdresseMac mac;
-    size_t port;
-    int valide;        // 0 si false, 1 si true
+    AdresseMac mac;     // adr mac
+    size_t port;    // port du switch sur laquelle la mac a été enregustré
+    int valide;        // 0 si false, 1 si true, pour savoir si le port est occupé
 } EntreeTableCommutation;
 
 typedef struct Switch_s {
     AdresseMac adresseMac;
     size_t nb_ports;
     int priorite;
-    EntreeTableCommutation *table_commutation;
+    EntreeTableCommutation table_commutation[MAX_ENTREES_COMMUTATION];
+    size_t nb_asso;   // nombre d'associations actuellement enregistrées
 } Switch_s;
 
 

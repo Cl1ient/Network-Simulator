@@ -187,15 +187,121 @@ void appliquer_permutation(graphe const *src, graphe *dst, size_t const *permuta
 
 uint32_t estimation_nb_chromatique(graphe const *g, uint32_t n)
 {
-    return 0;
+    size_t ordre_g = ordre(g);
+    size_t *permutation = malloc(ordre_g * sizeof(size_t));
+    uint8_t *couleurs = malloc(ordre_g * sizeof(uint8_t));
+    uint32_t min_couleurs = ordre_g;        // 1 sommet = 1 couleur au début
+
+    for (uint32_t i = 0; i<n; i++) {
+        generer_permutation(permutation, ordre_g);
+
+        graphe g_permute;
+        init_graphe(&g_permute);
+        appliquer_permutation(g, &g_permute, permutation);
+
+        coloriage_glouton(&g_permute, couleurs);
+
+        uint8_t max_couleur = 0;
+        for (size_t j = 0; j<ordre_g; j++) {
+            if (couleurs[j] != 255 && couleurs[j] > max_couleur) {
+                max_couleur = couleurs[j];
+            }
+        }
+        uint32_t nb_couleurs = max_couleur + 1;
+
+        if (nb_couleurs < min_couleurs) {
+            min_couleurs = nb_couleurs;
+        }
+
+        deinit_graphe(&g_permute);
+    }
+
+    free(permutation);
+    free(couleurs);
+    return min_couleurs;
 }
+
 
 void generer_aleatoire(graphe *g, size_t ordre, uint32_t k)
 {
+    for (size_t i = 0; i<ordre; i++) {
+        ajouter_sommet(g);
+    }
+
+    for (size_t i = 0; i<ordre; i++) {
+        for (size_t j = i+1; j<ordre; j++) {
+            if (rand() % k == 0) {
+                arete a = { .s1 = i, .s2 = j };
+                ajouter_arete(g, a);
+            }
+        }
+    }
 }
+
+
 
 void dijkstra(graphe const *g, sommet s, double const *poids_arete, double *distance_sommet)
 {
+    size_t n = ordre(g);
+    
+    // init distances
+    for (size_t i = 0; i < n; i++) {
+        distance_sommet[i] = DBL_MAX;
+    }
+    distance_sommet[s] = 0.0;
+    
+    // tab pour marquer les sommets visités
+    bool *visite = malloc(n * sizeof(bool));
+    for (size_t i = 0; i < n; i++) {
+        visite[i] = false;
+    }
+    
+    for (size_t compteur = 0; compteur < n; compteur++) {
+        // sommet non visité avc la plus petite distance
+        sommet u = 0;
+        double min_distance = DBL_MAX;
+        bool sommet_trouve = false;
+        
+        for (size_t i = 0; i < n; i++) {
+            if (!visite[i] && distance_sommet[i] < min_distance) {
+                min_distance = distance_sommet[i];
+                u = i;
+                sommet_trouve = true;
+            }
+        }
+        
+        // Si aucun sommet accessible 
+        if (!sommet_trouve || distance_sommet[u] == DBL_MAX) {
+            break;
+        }
+        
+        visite[u] = true;
+        
+        // voisins de u
+        sommet voisins[n];
+        size_t nb_voisins = sommets_adjacents(g, u, voisins);
+        
+        // Pour chaque voisin
+        for (size_t i = 0; i < nb_voisins; i++) {
+            sommet v = voisins[i];
+            
+            if (!visite[v]) {
+                arete a = {u, v};
+                size_t index = index_arete(g, a);
+                
+                if (index != UNKNOWN_INDEX) {
+                    double nouvelle_distance = distance_sommet[u] + poids_arete[index];
+                    
+                    if (nouvelle_distance < distance_sommet[v]) {
+                        distance_sommet[v] = nouvelle_distance;
+                    }
+                }
+            }
+        }
+    }
+    
+    free(visite);
+
 }
 
 void trier_aretes(arete *aretes_triees, graphe const *g, double const *poids_arete)
@@ -205,3 +311,4 @@ void trier_aretes(arete *aretes_triees, graphe const *g, double const *poids_are
 void kruskal(graphe const *g, double const *poids_arete, graphe *acm)
 {
 }
+
