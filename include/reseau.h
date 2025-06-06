@@ -9,9 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "graphe.h"
-#include "switch.h"
 #include "station.h"
 #include "tram.h"
+#include "switch.h"
 
 #define MAX_EQUIPEMENTS 100
 
@@ -37,14 +37,11 @@ typedef struct reseau{
     equipement equipements[MAX_EQUIPEMENTS];
     int nb_equipements;
     int nb_switches;  // Nombre de switch
-    // on s'en fout du nb de stations, parceque c'est tout ce qui reste
 } reseau;
 
 
 
 reseau creer_reseau();  // creation d'un reseau vide
-bool ajouter_station(reseau *reseau, station nv);
-bool ajouter_switch(reseau *reseau, Switch_s nv);
 bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids);   // connecter deux equipement (ajouter un arete)
 void afficher_reseau(reseau *reseau);
 
@@ -53,7 +50,6 @@ void afficher_reseau(reseau *reseau);
 size_t port_entre_de_precedent(reseau *r, size_t id_switch, size_t id_voisin);
 size_t chercher_port_mac(Switch_s *sw, AdresseMac mac);
 size_t voisin_sur_port(reseau *r, size_t id_switch, size_t port);
-int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t id_precedent);
+int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t id_precedent, int *visites);
 void envoyer_trame(reseau *r, size_t id_station_source, TrameEthernet *trame);
-
 

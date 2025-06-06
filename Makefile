@@ -11,7 +11,7 @@ all:
 	gcc -g -c src/switch.c
 	gcc -g -c src/utils.c
 	gcc -g -c src/tram.c
-	gcc -o programme adresse.o algos.o config.o graphe.o main.o reseau.o station.o switch.o utils.o tram.o
+	gcc -o programme adresse.o algos.o config.o graphe.o main.o reseau.o station.o switch.o utils.o tram.o 
 
 clean:
 	rm -f *.o programme

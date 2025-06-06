@@ -24,26 +24,50 @@ void envoyer_message(reseau *r, int index_source, int index_dest, const char *ms
 int main() {
     reseau reseau = creer_reseau();
     lireFichierConfiguration("config.lan", &reseau);
+    appliquer_stp(&reseau);
 
-    afficher(&reseau.graphe);
+    printf("\n\n");
+    
+    afficher_stp(&reseau);
+
+    //afficher(&reseau.graphe);
 
     // Envois de trames
-    envoyer_message(&reseau, 7, 14, "Salut 14, ici 7 !");
-    envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
+    //envoyer_message(&reseau, 7, 14, "Salut 14, ici 7 !");
+    /*envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
     envoyer_message(&reseau, 8, 7, "Hello de 8 vers 7 !");
     envoyer_message(&reseau, 7, 8, "Message 7 -> 8 !");
     envoyer_message(&reseau,14, 8, "Ping 14 - 8 !");
-    envoyer_message(&reseau, 8, 14, "Pong 8 - 14 !");
+    envoyer_message(&reseau, 8, 14, "Pong 8 - 14 !");*/
 
-    printf("\n======== TABLES DE COMMUTATION ========\n");
+    /*printf("\n======== TABLES DE COMMUTATION ========\n");
     for (int i = 0; i < reseau.nb_equipements; i++) {
         if (reseau.equipements[i].type == EQUIPEMENT_SWITCH) {
             printf("Switch %d :\n", i);
             afficher_table_commutation(&reseau.equipements[i].equipement.sw);
             printf("\n");
         }
-    }
+    }*/
 
     return 0;
 
 }
+
+
+
+/*
+TO DO 
+
+Y'a un paquet de switches.
+
+Chaque switch pense qu’il est la racine.
+
+À chaque tour, chaque switch regarde ses voisins pour voir s’il y en
+a un plus proche de la racine que lui (genre “hey, t’as une racine plus cool que moi ?”).
+
+Si oui, il change d’avis et prend l’info du voisin.
+
+On continue jusqu’à ce que tout le monde pense que le même switch est la racine.
+
+Ensuite on décide qui garde ses ports actifs ou les bloque, pour pas faire de boucle.
+*/

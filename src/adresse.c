@@ -49,3 +49,16 @@ int comparer_mac(const AdresseMac mac1, const AdresseMac mac2) {
     }
     return 1;
 }
+
+int comparer_mac_lex(const AdresseMac mac1, const AdresseMac mac2) {
+    for (int i = 0; i < 6; i++) {
+        if (mac1.octets[i] < mac2.octets[i]) {
+            return -1;
+        }
+        if (mac1.octets[i] > mac2.octets[i]) {
+            return 1;
+    
+        }
+    }
+    return 0;  // égalité
+}

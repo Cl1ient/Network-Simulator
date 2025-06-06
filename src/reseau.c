@@ -61,6 +61,7 @@ void afficher_reseau(reseau *reseau) {
 
 
 
+
 size_t port_entre_de_precedent(reseau *r, size_t id_switch, size_t id_voisin) {
     sommet voisins[32];     // Tableau pour stocker les voisins du switch
     size_t nb_voisins = sommets_adjacents(&r->graphe, id_switch, voisins);  // Récupère les voisins

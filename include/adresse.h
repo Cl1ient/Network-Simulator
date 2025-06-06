@@ -25,3 +25,4 @@ int string_to_ip(char* str, AdresseIP *ip);
 void afficherIp(AdresseIP ip);
 
 int comparer_mac(const AdresseMac mac1, const AdresseMac mac2);
+int comparer_mac_lex(const AdresseMac mac1, const AdresseMac mac2);
