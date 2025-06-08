@@ -50,6 +50,6 @@ void afficher_reseau(reseau *reseau);
 size_t port_entre_de_precedent(reseau *r, size_t id_switch, size_t id_voisin);
 size_t chercher_port_mac(Switch_s *sw, AdresseMac mac);
 size_t voisin_sur_port(reseau *r, size_t id_switch, size_t port);
-int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t id_precedent, int *visites);
+int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t id_precedent);
 void envoyer_trame(reseau *r, size_t id_station_source, TrameEthernet *trame);
 

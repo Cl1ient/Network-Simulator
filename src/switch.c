@@ -17,7 +17,7 @@ Switch_s creer_switch(char* mac_str, size_t nb_ports, int prio) {
 
     if (!string_to_mac(mac_str, &sw.adresseMac)) {
         printf("Erreur: mac invalide\n");
-        exit(EXIT_FAILURE); // important de sortir ici
+        exit(EXIT_FAILURE); 
     }
 
     sw.nb_ports = nb_ports;
@@ -29,17 +29,17 @@ Switch_s creer_switch(char* mac_str, size_t nb_ports, int prio) {
         sw.table_commutation[i].valide = 0;
     }
 
-    // ALLOCATION du tableau des états des ports
+    // ALLOCATION pour tableau des états des ports
     sw.etat_ports = malloc(nb_ports * sizeof(EtatPort));
     if (!sw.etat_ports) {
         fprintf(stderr, "Erreur malloc etat_ports\n");
         exit(EXIT_FAILURE);
     }
     for (size_t i = 0; i < nb_ports; i++) {
-        sw.etat_ports[i] = PORT_BLOQUE;  // valeur par défaut
+        sw.etat_ports[i] = PORT_BLOQUE;  // par défaut
     }
 
-    // Initialiser son propre BPDU (il se considère racine au début)
+    // Initialiser du BPDU (il se considère racine au début)
     sw.meilleur_bpdu.mac = sw.adresseMac;
     sw.meilleur_bpdu.priorite = sw.priorite;
     sw.meilleur_bpdu.cout = 0;
@@ -66,7 +66,6 @@ void ajouter_commutation (Switch_s* sw, AdresseMac mac, size_t port) {
     // Si la mac y est déja, on ne la rajoute pas.
     for (int i = 0; i < sw->nb_asso; i++) {
         if (comparer_mac(sw->table_commutation[i].mac, mac) && sw->table_commutation[i].port == port) {
-            // Déjà présent : ne rien faire
             return;
         }
     }
@@ -100,41 +99,46 @@ void afficher_table_commutation(Switch_s *sw) {
 }
 
 
-
-
-
-
-
-
-// Comparaison des BPDU : négatif si a < b (a meilleur), positif sinon
+// comparaison de BPDU selon l'ordre de priorité STP.
+// priorité > MAC > coût > port.
+// Retourne un entier négatif, nul ou positif selon que 'a' est "inférieur", "égal" ou "supérieur" à 'b'.
 int comparer_bpdu(BPDU *a, BPDU *b) {
-    if (a->priorite != b->priorite)
+    if (a->priorite != b->priorite) {
         return a->priorite - b->priorite;
+    }
 
     int cmp_mac = comparer_mac_lex(a->mac, b->mac);
-    if (cmp_mac != 0)
+    if (cmp_mac != 0) {
         return cmp_mac;
+    }
 
-    if (a->cout != b->cout)
+    if (a->cout != b->cout) {
         return a->cout - b->cout;
+    }
 
     return a->port - b->port;
 }
 
+
+// applique STP
+// comparant et échange des BPDU, puis met à jour l’état des ports
 void appliquer_stp(reseau *r) {
-    int converged = 0;
+    int stable = 0;     // si les états de ports se sont stabilisés.
 
-    while (!converged) {
-        converged = 1;
+    while (!stable) {
+        stable = 1;     // on suppose que c'est stable au début
 
-        // Étape 1 : Calcul des BPDU pour chaque switch
+        // Calcul des BPDU pour chaque switch
         for (int i = 0; i < r->nb_equipements; i++) {
-            if (r->equipements[i].type != EQUIPEMENT_SWITCH)
+
+            // on ignore les stations
+            if (r->equipements[i].type != EQUIPEMENT_SWITCH) {
                 continue;
+            }
 
             Switch_s *sw = &r->equipements[i].equipement.sw;
 
-            // Si racine, initialise son BPDU
+            // Si le switch se considère comme racine, il construit sont propre BPDU
             if (sw->est_racine) {
                 sw->meilleur_bpdu.mac = sw->adresseMac;
                 sw->meilleur_bpdu.priorite = sw->priorite;
@@ -142,40 +146,46 @@ void appliquer_stp(reseau *r) {
                 sw->meilleur_bpdu.port = -1;
             }
 
-            // Récupère tous les voisins (ports)
+            // Récupère tous les voisins (ports connectés au switch dans le graphe)
             sommet voisins[64];
             size_t nb_voisins = sommets_adjacents(&r->graphe, i, voisins);
 
+            // on parcours tout les voisins
             for (size_t port = 0; port < sw->nb_ports && port < nb_voisins; port++) {
                 int voisin = voisins[port];
                 equipement *eq_voisin = &r->equipements[voisin];
 
+                // si c'est une station, on met en désigné car tjr accessible
                 if (eq_voisin->type == EQUIPEMENT_STATION) {
                     sw->etat_ports[port] = PORT_ACTIF_DESIGNE;
                     continue;
                 }
 
+                // sinn on traite l'autre switch comme un emmetteur de bpdu
                 Switch_s *sw_voisin = &eq_voisin->equipement.sw;
 
+                // on recupere le bpdu du voisin et on ajoute le cout du lien
                 BPDU bpdu_voisin = sw_voisin->meilleur_bpdu;
-                bpdu_voisin.cout += 1;  // ajout du coût pour le saut supplémentaire
+                bpdu_voisin.cout += 1;
                 bpdu_voisin.port = (int)port;
 
+                // on compare le bpdu avec le meilleur qu'on a
                 int cmp = comparer_bpdu(&bpdu_voisin, &sw->meilleur_bpdu);
                 if (cmp < 0) {
                     // BPDU voisin est meilleur, on met à jour
                     sw->meilleur_bpdu = bpdu_voisin;
                     sw->port_racine = (int)port;
-                    sw->est_racine = 0;
-                    converged = 0;
+                    sw->est_racine = 0;     // ce switch n'est plus racine
+                    stable = 0;     // il y a eu un changement donc le reseau n'est pas encore stable
                 }
             }
         }
 
-        // Étape 2 : Mise à jour des états des ports
+        // Mise à jour des états des ports
         for (int i = 0; i < r->nb_equipements; i++) {
-            if (r->equipements[i].type != EQUIPEMENT_SWITCH)
+            if (r->equipements[i].type != EQUIPEMENT_SWITCH) {
                 continue;
+            }
 
             Switch_s *sw = &r->equipements[i].equipement.sw;
 
@@ -192,12 +202,16 @@ void appliquer_stp(reseau *r) {
                 }
 
                 Switch_s *sw_voisin = &eq_voisin->equipement.sw;
+
+                // trouve le port du voisin qui mène a ce switch
                 int port_voisin = get_port_vers_equipement(&r->graphe, voisin, i);
                 if (port_voisin == -1) {
+                    // si il y a pas de port valide, on active le port comme désigné par dégaut
                     sw->etat_ports[port] = PORT_ACTIF_DESIGNE; // par défaut
                     continue;
                 }
 
+                // recup l'etat du port du voisin
                 EtatPort etat_voisin = sw_voisin->etat_ports[port_voisin];
 
                 if ((int)port == sw->port_racine) {
@@ -214,13 +228,13 @@ void appliquer_stp(reseau *r) {
     }
 }
 
-int get_port_vers_equipement(const graphe *g, int from_idx, int to_idx) {
+int get_port_vers_equipement(const graphe *g, int de_idx, int a_idx) {
     sommet sa[64];
-    size_t nb = sommets_adjacents(g, from_idx, sa);
+    size_t nb = sommets_adjacents(g, de_idx, sa);
 
     for (size_t i = 0; i < nb; i++) {
-        if (sa[i] == to_idx) {
-            return (int)i; // port vers to_idx
+        if (sa[i] == a_idx) {
+            return (int)i; // port vers a_idx
         }
     }
     return -1;

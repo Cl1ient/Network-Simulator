@@ -24,6 +24,7 @@ void envoyer_message(reseau *r, int index_source, int index_dest, const char *ms
 int main() {
     reseau reseau = creer_reseau();
     lireFichierConfiguration("config.lan", &reseau);
+
     appliquer_stp(&reseau);
 
     printf("\n\n");
@@ -33,21 +34,23 @@ int main() {
     //afficher(&reseau.graphe);
 
     // Envois de trames
-    //envoyer_message(&reseau, 7, 14, "Salut 14, ici 7 !");
-    /*envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
+    /*envoyer_message(&reseau, 7, 14, "Salut 14, ici 7 !");
+    envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
     envoyer_message(&reseau, 8, 7, "Hello de 8 vers 7 !");
     envoyer_message(&reseau, 7, 8, "Message 7 -> 8 !");
     envoyer_message(&reseau,14, 8, "Ping 14 - 8 !");
     envoyer_message(&reseau, 8, 14, "Pong 8 - 14 !");*/
 
-    /*printf("\n======== TABLES DE COMMUTATION ========\n");
+    envoyer_message(&reseau,7, 14, "Ping 7 - 14 !");
+
+    printf("\n======== TABLES DE COMMUTATION ========\n");
     for (int i = 0; i < reseau.nb_equipements; i++) {
         if (reseau.equipements[i].type == EQUIPEMENT_SWITCH) {
             printf("Switch %d :\n", i);
             afficher_table_commutation(&reseau.equipements[i].equipement.sw);
             printf("\n");
         }
-    }*/
+    }
 
     return 0;
 

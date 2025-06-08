@@ -43,14 +43,12 @@ void set_trame_data(TrameEthernet *trame, uint8_t *data, size_t size) {
 }
 
 void afficher_trame_utilisateur(TrameEthernet *trame) {
-    printf("=== TRAME ETHERNET ===\n\n");
+    printf("=== TRAME ETHERNET ===\n");
     printf("Source      : ");
     afficherMac(trame->adresse_source);
-    printf("\n");
     
     printf("Destination : ");
     afficherMac(trame->adresse_destination);
-    printf("\n");
     
     printf("Type        : 0x%04X", trame->type);
     switch (trame->type) {

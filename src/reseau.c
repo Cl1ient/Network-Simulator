@@ -6,25 +6,29 @@
 #include <stdlib.h>
 #include <string.h>
 
+// prépare un res vide avec 0 équipement et un graphe initialisé.
 reseau creer_reseau() {
-    reseau r;
-    r.nb_equipements = 0;
-    r.nb_equipements = 0;
-
+    reseau r;   
+    r.nb_equipements = 0;   
 
     init_graphe(&r.graphe);
 
     return r;
 }
 
-// Connexion de deux équipements (ajt d’une arete dans le graphe)
+// Connexion de deux équipements (ajt d’une arete dans le graphej avec un poids)
+// Retourne 'true' si l'ajout s'est bien passé, sinon 'false'.
 bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids) {
+    
+    // si le pointeur est nul, reseau invalide, impossible de lier
     if (!reseau) {
         return false;
     }
 
+    // creation d'une arete pour le graphe entre les deux equipements
     arete nouvelle_arete = {id1, id2, poids};
 
+    // ajoute l'arete au graphe
     return ajouter_arete(&reseau->graphe, nouvelle_arete);
 }
 
@@ -35,15 +39,21 @@ void afficher_reseau(reseau *reseau) {
         printf("Réseau invalide\n");
         return;
     }
-    printf("Réseau\n\n");
-    printf("Équipements : %d\n", reseau->nb_equipements);
+
+    printf("\n\n=== Réseau === \n\n");
+
+    printf("Équipements : %d\n\n", reseau->nb_equipements);
+
     for (int i = 0; i < reseau->nb_equipements; i++) {
-        if (reseau->equipements[i].type == EQUIPEMENT_STATION)
+        if (reseau->equipements[i].type == EQUIPEMENT_STATION) {
             afficher_station(&reseau->equipements[i].equipement.st);
-        else if (reseau->equipements[i].type == EQUIPEMENT_SWITCH)
+        }
+        else if (reseau->equipements[i].type == EQUIPEMENT_SWITCH) {
             afficher_switch(&reseau->equipements[i].equipement.sw);
+        }
+        printf("\n\n");
     }
-    printf("\nStructure du graphe :\n");
+    printf("\nStructure du graphe :\n\n");
     afficher(&reseau->graphe);
 }
 
@@ -127,47 +137,65 @@ int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t 
     char str_mac_src[18];
     char str_mac_dst[18];
 
-    if (eq->type == EQUIPEMENT_SWITCH) {    // Si c'est un switch
-        Switch_s *sw = &eq->equipement.sw;  // Récupère le switch
-        size_t port_entree = port_entre_de_precedent(r, id_actuel, id_precedent);    // Trouve le port par lequel la trame est arrivée
+    if (eq->type == EQUIPEMENT_SWITCH) {
+        Switch_s *sw = &eq->equipement.sw;
+        size_t port_entree = port_entre_de_precedent(r, id_actuel, id_precedent);
+
+        // VÉRIFIER L'ÉTAT DU PORT D'ENTRÉE
+        if (port_entree != UNKNOWN_INDEX && 
+            port_entree < sw->nb_ports && 
+            sw->etat_ports[port_entree] == PORT_BLOQUE) {
+            printf("╚═ [Switch %zu] Trame bloquée - port %zu fermé\n", id_actuel, port_entree);
+            return 0;  // Port bloqué, on n'accepte pas la trame
+        }
 
         printf("╔═ [Switch %zu] Trame reçue via port %zu (de %zu)\n", id_actuel, port_entree, id_precedent);
 
-        //  ajoute l'adresse source à la table du switch
-        ajouter_commutation(sw, trame->adresse_source, port_entree);
-        printf("║  Apprentissage : MAC %s → port %zu\n", mac_to_string(trame->adresse_source, str_mac_src), port_entree);        
+        // Apprentissage (seulement si le port d'entrée est actif)
+        if (port_entree != UNKNOWN_INDEX && port_entree < sw->nb_ports) {
+            ajouter_commutation(sw, trame->adresse_source, port_entree);
+            printf("║  Apprentissage : MAC %s → port %zu\n", mac_to_string(trame->adresse_source, str_mac_src), port_entree);
+        }
         
-        // Recherche si le switch connaît la MAC destination
+        // Recherche destination
         size_t port_dest = chercher_port_mac(sw, trame->adresse_destination);
         mac_to_string(trame->adresse_destination, str_mac_dst);
 
-        if (port_dest != -1) {
-            size_t voisin = voisin_sur_port(r, id_actuel, port_dest);   // Récupère le voisin connecté à ce port
-            printf("║  Destination connue : MAC %s → port %zu (vers %zu)\n", str_mac_dst, port_dest, voisin);
-        
-            if (envoyer_trame_rec(r, voisin, trame, id_actuel)) {   // Envoie la trame à ce voisin
-                return 1;
-            }
-
-        } else {
-
-            printf("║  Destination inconnue : MAC %s → diffusion\n", str_mac_dst);
-            sommet voisins[32];
-            size_t nb_voisins = sommets_adjacents(&r->graphe, id_actuel, voisins);  // Récupère tous les voisins
-
-            for (size_t i = 0; i < nb_voisins; i++) {
-            if (voisins[i] == id_precedent) continue;
-
-                printf("║    ↳ Port %zu → %zu\n", i, voisins[i]);
-                if (envoyer_trame_rec(r, voisins[i], trame, id_actuel)) {
+        if (port_dest != (size_t)-1 && port_dest < sw->nb_ports) {
+            // VÉRIFIER L'ÉTAT DU PORT DE SORTIE
+            if (sw->etat_ports[port_dest] == PORT_BLOQUE) {
+                printf("║  Port destination %zu bloqué, passage en diffusion\n", port_dest);
+            } else {
+                size_t voisin = voisin_sur_port(r, id_actuel, port_dest);
+                printf("║  Destination connue : MAC %s → port %zu (vers %zu)\n", str_mac_dst, port_dest, voisin);
+                
+                if (voisin != UNKNOWN_INDEX && envoyer_trame_rec(r, voisin, trame, id_actuel)) {
                     return 1;
                 }
             }
         }
 
-        printf("╚═ [Switch %zu] Trame non transmise\n", id_actuel);
+        // Diffusion (seulement sur les ports actifs)
+        printf("║  Destination inconnue : MAC %s → diffusion\n", str_mac_dst);
+        sommet voisins[32];
+        size_t nb_voisins = sommets_adjacents(&r->graphe, id_actuel, voisins);
 
-    } else if (eq->type == EQUIPEMENT_STATION) {    // Si on atteint une station
+        for (size_t i = 0; i < nb_voisins; i++) {
+            if (voisins[i] == id_precedent) continue;  // Ne pas renvoyer par où c'est arrivé
+            
+            if (i < sw->nb_ports && sw->etat_ports[i] == PORT_BLOQUE) {
+                printf("║    ↳ Port %zu → %zu (BLOQUÉ)\n", i, voisins[i]);
+                continue;  // Port bloqué, passer au suivant
+            }
+
+            printf("║    ↳ Port %zu → %zu\n", i, voisins[i]);
+            if (envoyer_trame_rec(r, voisins[i], trame, id_actuel)) {
+                return 1;
+            }
+        }
+
+        printf("╚═ [Switch %zu] Trame non transmise\n", id_actuel);
+    }  else if (eq->type == EQUIPEMENT_STATION) {    // Si on atteint une station
         station *st = &eq->equipement.st;
         if (comparer_mac(st->mac, trame->adresse_destination)) {    // Si c’est la station destinataire
             printf("\033[1;32m🎯 [Station %zu] Trame reçue par la destination (%s)\033[0m\n", id_actuel, mac_to_string(trame->adresse_destination, str_mac_dst));    // Affiche que la trame est reçue
@@ -178,6 +206,14 @@ int envoyer_trame_rec(reseau *r, size_t id_actuel, TrameEthernet *trame, size_t 
         }
     }
     return 0;   // pas trouvé
+}
+
+// Fonction pour vérifier si un port est actif
+bool port_est_actif(Switch_s *sw, size_t port) {
+    if (!sw || port >= sw->nb_ports) {
+        return false;
+    }
+    return sw->etat_ports[port] != PORT_BLOQUE;
 }
 
 void envoyer_trame(reseau *r, size_t id_station_source, TrameEthernet *trame) {
