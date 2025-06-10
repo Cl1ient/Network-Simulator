@@ -21,6 +21,24 @@ void envoyer_message(reseau *r, int index_source, int index_dest, const char *ms
     envoyer_trame(r, index_source, &trame);
 }
 
+void liberer_reseau(reseau *r) {
+    if (!r) return;
+
+    // Libérer les tableaux etat_ports de chaque switch
+    for (int i = 0; i < r->nb_equipements; i++) {
+        if (r->equipements[i].type == EQUIPEMENT_SWITCH) {
+            Switch_s *sw = &r->equipements[i].equipement.sw;
+            if (sw->etat_ports) {
+                free(sw->etat_ports);
+                sw->etat_ports = NULL;
+            }
+        }
+    }
+
+    // Libérer le graphe (tableau d'arêtes)
+    deinit_graphe(&r->graphe);
+}
+
 int main() {
     reseau reseau = creer_reseau();
     lireFichierConfiguration("config.lan", &reseau);
@@ -28,20 +46,15 @@ int main() {
     appliquer_stp(&reseau);
 
     printf("\n\n");
-    
+
     afficher_stp(&reseau);
 
     //afficher(&reseau.graphe);
 
     // Envois de trames
-    /*envoyer_message(&reseau, 7, 14, "Salut 14, ici 7 !");
-    envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
-    envoyer_message(&reseau, 8, 7, "Hello de 8 vers 7 !");
-    envoyer_message(&reseau, 7, 8, "Message 7 -> 8 !");
-    envoyer_message(&reseau,14, 8, "Ping 14 - 8 !");
-    envoyer_message(&reseau, 8, 14, "Pong 8 - 14 !");*/
-
-    envoyer_message(&reseau,7, 14, "Ping 7 - 14 !");
+    envoyer_message(&reseau, 9, 12, "Salut 14, ici 7 !");
+    //envoyer_message(&reseau, 14, 7, "Bien reçu 7, ici 14 !");
+    //envoyer_message(&reseau, 8, 7, "Hello de 8 vers 7 !");
 
     printf("\n======== TABLES DE COMMUTATION ========\n");
     for (int i = 0; i < reseau.nb_equipements; i++) {
@@ -52,6 +65,8 @@ int main() {
         }
     }
 
+    liberer_reseau(&reseau);
+
     return 0;
 
 }
@@ -59,7 +74,7 @@ int main() {
 
 
 /*
-TO DO 
+TO DO
 
 Y'a un paquet de switches.
 
