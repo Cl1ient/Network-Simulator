@@ -74,7 +74,7 @@ int main() {
 
 
 /*
-TO DO
+
 
 Y'a un paquet de switches.
 
