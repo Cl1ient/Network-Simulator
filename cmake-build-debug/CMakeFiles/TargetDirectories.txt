@@ -1,0 +1,3 @@
+C:/Users/Cl1en/CLionProjects/s21-simulation-reseau/cmake-build-debug/CMakeFiles/sae_s21.dir
+C:/Users/Cl1en/CLionProjects/s21-simulation-reseau/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Cl1en/CLionProjects/s21-simulation-reseau/cmake-build-debug/CMakeFiles/rebuild_cache.dir

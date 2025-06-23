@@ -20,7 +20,7 @@ reseau creer_reseau() {
 // Retourne 'true' si l'ajout s'est bien passé, sinon 'false'.
 bool connecter_equipement(reseau *reseau, size_t id1, size_t id2, int poids) {
     
-    // si le pointeur est nul, reseau invalide, impossible de lier
+    // si le pointeur est nul, reseau invalide, impossible de lier ;
     if (!reseau) {
         return false;
     }
